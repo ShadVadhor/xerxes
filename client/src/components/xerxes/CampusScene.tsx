@@ -596,11 +596,13 @@ function buildXerxes(): Campus {
 }
 
 /* ---------------------------------------------------------------------------------------------
- * DTF — Dark Token Factory: one fenced well pad, one sealed two-level building, a reserve footprint
- * for a second, and one re-entered well whose four branches are planned to grow to ten.
+ * DTF — Dark Token Factory: one stationary pad, one prefabricated two-level building (Level 2
+ * compute under a robotic gantry, Level 1 power / cooling / stimulation), a green steel wellhead,
+ * and one re-entered well: a ten-slot neck with ten branches around a 3-inch sensor core.
  * ------------------------------------------------------------------------------------------- */
 
-const DTF_KICKOFF = 1.15;
+const DTF_NECK = 1.15;
+const DTF_CORE_END = 2.05;
 const PAD_TOP = 0.07;
 
 function makeDtf(): Campus {
@@ -609,8 +611,11 @@ function makeDtf(): Campus {
   content.scale.setScalar(WORLD_SCALE);
   group.add(content);
 
-  const ceramic = ceramicMaterial();
   const slate = new THREE.MeshStandardMaterial({ color: "#2a313b", roughness: 0.6, metalness: 0.25 });
+  const graphite = new THREE.MeshStandardMaterial({ color: "#3b424d", roughness: 0.48, metalness: 0.42 });
+  const steel = new THREE.MeshStandardMaterial({ color: "#aeb6c0", roughness: 0.32, metalness: 0.75 });
+  const green = new THREE.MeshStandardMaterial({ color: "#2f8a55", roughness: 0.45, metalness: 0.3 });
+  const glow = (color: string) => new THREE.MeshBasicMaterial({ color, toneMapped: false });
   const add = (parent: THREE.Object3D, geometry: THREE.BufferGeometry, material: THREE.Material, x: number, y: number, z: number) => {
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(x, y, z);
@@ -622,56 +627,65 @@ function makeDtf(): Campus {
   content.add(makePlatform(4.1), pad);
   add(pad, new RoundedBoxGeometry(5.2, 0.08, 3.9, 2, 0.02), new THREE.MeshStandardMaterial({ color: "#1b2129", roughness: 0.85 }), 0, 0.03, 0);
 
-  // Building 1 — energy level below (warm slit), compute level above (blue slit). Sealed: no windows.
+  // The building. Level 1 (power, cooling, stimulation, storage): four bays, one colour slit each.
   const bx = -1.2;
   const bz = -0.6;
-  add(pad, new RoundedBoxGeometry(1.9, 0.46, 1.05, 3, 0.03), ceramic, bx, PAD_TOP + 0.23, bz);
-  add(pad, new RoundedBoxGeometry(1.84, 0.46, 0.99, 3, 0.03), ceramic, bx, PAD_TOP + 0.69, bz);
-  add(pad, new THREE.BoxGeometry(1.5, 0.026, 0.01), new THREE.MeshBasicMaterial({ color: "#ff7a3a", toneMapped: false }), bx, PAD_TOP + 0.24, bz + 0.53);
-  add(pad, new THREE.BoxGeometry(1.5, 0.026, 0.01), new THREE.MeshBasicMaterial({ color: "#4a96ff", toneMapped: false }), bx, PAD_TOP + 0.7, bz + 0.5);
-  // roof gantry: the robot's rail
-  add(pad, new THREE.BoxGeometry(1.6, 0.025, 0.04), slate, bx, PAD_TOP + 0.935, bz - 0.25);
-  add(pad, new THREE.BoxGeometry(1.6, 0.025, 0.04), slate, bx, PAD_TOP + 0.935, bz + 0.25);
-  add(pad, new THREE.BoxGeometry(0.05, 0.03, 0.56), slate, bx + 0.2, PAD_TOP + 0.955, bz);
-  add(pad, new THREE.SphereGeometry(0.03, 10, 8), new THREE.MeshBasicMaterial({ color: "#8fd0ff", toneMapped: false }), bx + 0.2, PAD_TOP + 0.99, bz);
+  add(pad, new RoundedBoxGeometry(1.9, 0.46, 1.05, 3, 0.03), graphite, bx, PAD_TOP + 0.23, bz);
+  const bays = [
+    { dx: -0.71, color: "#ff7a3a" }, // Native ORC-DC
+    { dx: -0.24, color: "#e4ad3c" }, // GEOFLEX BESS
+    { dx: 0.24, color: "#4fc3e8" }, // absorption cooling
+    { dx: 0.71, color: "#c4cad2" }, // stimulation unit
+  ];
+  bays.forEach(bay => add(pad, new THREE.BoxGeometry(0.34, 0.026, 0.01), glow(bay.color), bx + bay.dx, PAD_TOP + 0.24, bz + 0.53));
+  [-0.475, 0, 0.475].forEach(dx => add(pad, new THREE.BoxGeometry(0.014, 0.4, 0.012), slate, bx + dx, PAD_TOP + 0.23, bz + 0.527));
 
-  // Reserve footprint for Building 2: dashed, ghosted, not built.
-  const rx = 0.75;
-  const outline = new THREE.LineLoop(
-    new THREE.BufferGeometry().setFromPoints([
-      new THREE.Vector3(rx - 0.95, PAD_TOP + 0.004, bz - 0.525),
-      new THREE.Vector3(rx + 0.95, PAD_TOP + 0.004, bz - 0.525),
-      new THREE.Vector3(rx + 0.95, PAD_TOP + 0.004, bz + 0.525),
-      new THREE.Vector3(rx - 0.95, PAD_TOP + 0.004, bz + 0.525),
-    ]),
-    new THREE.LineDashedMaterial({ color: "#ff9055", dashSize: 0.08, gapSize: 0.06, transparent: true, opacity: 0.85, toneMapped: false })
-  );
-  outline.computeLineDistances();
-  const ghost = new THREE.LineSegments(
-    new THREE.EdgesGeometry(new THREE.BoxGeometry(1.9, 0.92, 1.05)),
-    new THREE.LineDashedMaterial({ color: "#ffb48a", dashSize: 0.06, gapSize: 0.07, transparent: true, opacity: 0.32, toneMapped: false })
-  );
-  ghost.computeLineDistances();
-  ghost.position.set(rx, PAD_TOP + 0.46, bz);
-  pad.add(outline, ghost);
-
-  // Battery storage row (BESS) and the ORC skid.
-  const bess = new THREE.MeshPhysicalMaterial({ color: "#e4e6ea", roughness: 0.4, metalness: 0.1, clearcoat: 0.3 });
-  [-1.75, -1.05, -0.35].forEach(x => {
-    add(pad, new RoundedBoxGeometry(0.62, 0.34, 0.36, 2, 0.02), bess, x, PAD_TOP + 0.17, 1.05);
-    add(pad, new THREE.BoxGeometry(0.5, 0.018, 0.01), new THREE.MeshBasicMaterial({ color: "#4a96ff", toneMapped: false }), x, PAD_TOP + 0.2, 1.235);
+  // Level 2 (compute): Module A and Module B side by side, each with its own LED slit.
+  [-0.47, 0.47].forEach(dx => {
+    add(pad, new RoundedBoxGeometry(0.89, 0.44, 0.97, 3, 0.03), graphite, bx + dx, PAD_TOP + 0.68, bz);
+    add(pad, new THREE.BoxGeometry(0.62, 0.026, 0.01), glow("#4a96ff"), bx + dx, PAD_TOP + 0.7, bz + 0.49);
   });
-  add(pad, new RoundedBoxGeometry(0.9, 0.3, 0.5, 2, 0.02), slate, 1.45, PAD_TOP + 0.15, 1.0);
-  add(pad, new THREE.CylinderGeometry(0.11, 0.11, 0.42, 20), bess, 1.2, PAD_TOP + 0.51, 1.0);
-  add(pad, new THREE.CylinderGeometry(0.08, 0.08, 0.3, 20), bess, 1.65, PAD_TOP + 0.45, 1.0);
+  // robotic gantry: two rails along the roof, a cross beam and a carriage
+  add(pad, new THREE.BoxGeometry(1.86, 0.025, 0.04), slate, bx, PAD_TOP + 0.915, bz - 0.28);
+  add(pad, new THREE.BoxGeometry(1.86, 0.025, 0.04), slate, bx, PAD_TOP + 0.915, bz + 0.28);
+  add(pad, new THREE.BoxGeometry(0.05, 0.03, 0.62), slate, bx + 0.25, PAD_TOP + 0.94, bz);
+  add(pad, new THREE.BoxGeometry(0.1, 0.05, 0.1), steel, bx + 0.25, PAD_TOP + 0.98, bz);
+  add(pad, new THREE.SphereGeometry(0.026, 10, 8), glow("#8fd0ff"), bx + 0.25, PAD_TOP + 1.02, bz);
+  // the two service links between the levels: native DC (warm) and cooling (cool)
+  add(pad, new THREE.BoxGeometry(0.012, 0.2, 0.03), glow("#ff7a3a"), bx + 0.953, PAD_TOP + 0.46, bz - 0.18);
+  add(pad, new THREE.BoxGeometry(0.012, 0.2, 0.03), glow("#4fc3e8"), bx + 0.953, PAD_TOP + 0.46, bz + 0.18);
 
-  // Wellhead.
-  const wx = 0.45;
-  const wz = 0.32;
-  add(pad, new THREE.CylinderGeometry(0.17, 0.2, 0.08, 28), slate, wx, PAD_TOP + 0.04, wz);
-  add(pad, new THREE.CylinderGeometry(0.055, 0.055, 0.3, 14), ceramic, wx, PAD_TOP + 0.23, wz);
-  const ring = add(pad, new THREE.TorusGeometry(0.14, 0.012, 8, 40), new THREE.MeshBasicMaterial({ color: "#ff7a3a", toneMapped: false }), wx, PAD_TOP + 0.09, wz);
-  ring.rotation.x = Math.PI / 2;
+  // Battery containers (2 × 5 MW), absorption-cooling vessels and the ORC skid.
+  const bess = new THREE.MeshPhysicalMaterial({ color: "#e4e6ea", roughness: 0.4, metalness: 0.1, clearcoat: 0.3 });
+  [-1.5, -0.8].forEach(x => {
+    add(pad, new RoundedBoxGeometry(0.62, 0.34, 0.36, 2, 0.02), bess, x, PAD_TOP + 0.17, 1.05);
+    add(pad, new THREE.BoxGeometry(0.5, 0.018, 0.01), glow("#4a96ff"), x, PAD_TOP + 0.2, 1.235);
+  });
+  add(pad, new RoundedBoxGeometry(0.9, 0.3, 0.5, 2, 0.02), slate, 1.5, PAD_TOP + 0.15, 1.0);
+  add(pad, new THREE.BoxGeometry(0.7, 0.018, 0.01), glow("#ff7a3a"), 1.5, PAD_TOP + 0.2, 1.255);
+  [0.12, 0.34].forEach(y => {
+    const tank = add(pad, new THREE.CylinderGeometry(0.1, 0.1, 0.86, 22), steel, -0.05, PAD_TOP + y, 1.0);
+    tank.rotation.z = Math.PI / 2;
+    const ring = add(pad, new THREE.TorusGeometry(0.102, 0.008, 6, 28), glow("#4fc3e8"), -0.05, PAD_TOP + y, 1.0);
+    ring.rotation.y = Math.PI / 2;
+  });
+
+  // Green steel wellhead: stack, side arms and hand-wheels.
+  const wx = 0.62;
+  const wz = 0.3;
+  add(pad, new THREE.CylinderGeometry(0.2, 0.23, 0.07, 28), slate, wx, PAD_TOP + 0.035, wz);
+  add(pad, new THREE.CylinderGeometry(0.05, 0.05, 0.42, 14), green, wx, PAD_TOP + 0.28, wz);
+  add(pad, new THREE.SphereGeometry(0.058, 12, 10), green, wx, PAD_TOP + 0.5, wz);
+  [0.18, 0.31].forEach(y => {
+    const arm = add(pad, new THREE.CylinderGeometry(0.028, 0.028, 0.3, 10), green, wx, PAD_TOP + y, wz);
+    arm.rotation.z = Math.PI / 2;
+    add(pad, new THREE.CylinderGeometry(0.036, 0.036, 0.04, 12), steel, wx + 0.17, PAD_TOP + y, wz).rotation.z = Math.PI / 2;
+    const wheel = add(pad, new THREE.TorusGeometry(0.05, 0.007, 6, 18), steel, wx, PAD_TOP + y + 0.06, wz + 0.0);
+    wheel.rotation.x = Math.PI / 2;
+  });
+  const flowline = add(pad, new THREE.CylinderGeometry(0.026, 0.026, 0.86, 10), steel, wx - 0.43, PAD_TOP + 0.045, wz + 0.1);
+  flowline.rotation.z = Math.PI / 2;
+  add(pad, new THREE.TorusGeometry(0.17, 0.011, 8, 40), glow("#ff7a3a"), wx, PAD_TOP + 0.075, wz).rotation.x = Math.PI / 2;
 
   // Fence with a gate on the service side.
   const hx = 2.35;
@@ -719,31 +733,34 @@ function makeDtf(): Campus {
   );
   [-0.5, 0.5].forEach(x => {
     add(pad, new THREE.BoxGeometry(0.05, 0.34, 0.05), slate, x, PAD_TOP + 0.17, hz);
-    add(pad, new THREE.BoxGeometry(0.06, 0.02, 0.06), new THREE.MeshBasicMaterial({ color: "#ff7a3a", toneMapped: false }), x, PAD_TOP + 0.35, hz);
+    add(pad, new THREE.BoxGeometry(0.06, 0.02, 0.06), glow("#ff7a3a"), x, PAD_TOP + 0.35, hz);
   });
 
-  // Underground: one re-entered well, four branches drilled, six more planned (dashed).
+  // Underground: one re-entered well. A ten-slot neck (six slots in the upper half, four in the lower),
+  // ten branches sidetracked from those slots, and the 3-inch sensor core running on below them all.
   const under = new THREE.Group();
-  const origin = new THREE.Vector3(wx, -DTF_KICKOFF, wz);
+  const slotY = Array.from({ length: 10 }, (_, k) => (k < 6 ? -(0.1 + k * 0.095) : -(0.7 + (k - 6) * 0.12)));
   const branches: Branch[] = [];
-  const drilled = new Set([0, 3, 5, 8]);
   for (let k = 0; k < 10; k += 1) {
+    const origin = new THREE.Vector3(wx, slotY[k], wz);
+    const endDepth = 1.78 + (k % 4) * 0.09;
     branches.push({
-      curve: branchCurve(origin, (k / 10) * Math.PI * 2 + 0.3, 1.25 + (k % 3) * 0.12, 0.55 + (k % 4) * 0.1),
+      curve: branchCurve(origin, (k / 10) * Math.PI * 2 + 0.3, 1.2 + (k % 3) * 0.13, (endDepth + slotY[k]) / 1.05),
       dir: k % 2 === 0 ? -1 : 1,
       phase: (k * 0.6180339) % 1,
-      ghost: !drilled.has(k),
     });
   }
   const material = makeFlowMaterial("#ff5a1f", "#3d8bff", 1);
   const flow = new THREE.Mesh(mergeTubes(branches, 0.03, 56, 6), material);
   flow.frustumCulled = false;
-  under.add(flow, makeHalo(branches.filter(b => !b.ghost), 0.07, 0.09));
-  add(under, new THREE.CylinderGeometry(0.044, 0.044, DTF_KICKOFF + 0.9, 12, 1, true), glowMaterial("#ff9055", 0.72), wx, -(DTF_KICKOFF + 0.9) / 2, wz);
-  // the central motherbore keeps going: the thermal-sensing core
-  add(under, new THREE.SphereGeometry(0.09, 16, 12), glowMaterial("#fff1e0", 0.95), wx, -(DTF_KICKOFF + 0.9), wz);
-  add(under, new THREE.SphereGeometry(0.2, 16, 12), glowMaterial("#ff7a3a", 0.16), wx, -(DTF_KICKOFF + 0.9), wz);
-  add(under, new THREE.SphereGeometry(0.075, 14, 10), glowMaterial("#ffd3ae", 0.95), wx, -DTF_KICKOFF, wz);
+  under.add(flow, makeHalo(branches, 0.07, 0.09));
+  // the neck: a darker sleeve with ten amber slot ports
+  add(under, new THREE.CylinderGeometry(0.075, 0.075, DTF_NECK, 16, 1, true), glowMaterial("#7a4a2a", 0.4), wx, -DTF_NECK / 2, wz);
+  slotY.forEach((y, k) => add(under, new THREE.BoxGeometry(0.05, 0.026, 0.05), glow("#ffc27a"), wx + (k % 2 === 0 ? -0.075 : 0.075), y, wz));
+  // the central sensor core
+  add(under, new THREE.CylinderGeometry(0.03, 0.03, DTF_CORE_END, 10, 1, true), glowMaterial("#ffd9bd", 0.85), wx, -DTF_CORE_END / 2, wz);
+  add(under, new THREE.SphereGeometry(0.085, 16, 12), glowMaterial("#fff1e0", 0.95), wx, -DTF_CORE_END, wz);
+  add(under, new THREE.SphereGeometry(0.2, 16, 12), glowMaterial("#ff7a3a", 0.16), wx, -DTF_CORE_END, wz);
   content.add(under);
 
   return { group, flows: [material] };

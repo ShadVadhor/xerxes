@@ -40,9 +40,10 @@ export const CHAPTERS = [
 
 /** Hero HUD phases keyed to the loop film (seconds into the 19s loop) */
 export const HERO_PHASES = [
-  { from: 0, to: 7.4, tag: "01 / SURFACE", line: "A campus that asks nothing of the grid." },
-  { from: 7.4, to: 15, tag: "02 / DESCENT", line: "Twelve wells. One hundred and twenty branches. Five kilometres down." },
-  { from: 15, to: 19.1, tag: "03 / COMPUTE", line: "Heat becomes intelligence." },
+  { from: 0, to: 6.2, tag: "01 / SURFACE", line: "A campus that asks nothing of the grid." },
+  { from: 6.2, to: 13.8, tag: "02 / TWELVE WELLS", line: "A hub and six pods over twelve wells: two under every pod, fifty metres apart." },
+  { from: 13.8, to: 18.2, tag: "03 / 120 BRANCHES", line: "Ten directional branches a well, one hundred and twenty in all, five kilometres down." },
+  { from: 18.2, to: 22.2, tag: "04 / COMPUTE", line: "Heat becomes intelligence." },
 ];
 
 export const HERO_TELEMETRY = [
@@ -71,7 +72,7 @@ export const MODELS = {
   title: "A node on one old well.",
   titleAccent: "A Goliath on twelve deep ones.",
   intro:
-    "The Dark Token Factory (DTF) is the small model: a sealed, lights-out AI factory on one re-entered oil-and-gas well. Xerxes is the Goliath: a hub and six pods over twelve wells and 120 directional branches, five kilometres deep. Same principle. Take the data center to the power. Radically different scale.",
+    "The Dark Token Factory (DTF) is the small model: a prefabricated, two-level building that runs dark beside one re-entered well and lives off its heat. Xerxes is the Goliath: a hub and six pods over twelve wells and 120 directional branches, five kilometres deep. Same principle. Take the data center to the power. Radically different scale.",
   viewerNote: "Illustrative massing — not to engineering scale",
   toggles: [
     { id: "dtf", label: "DTF" },
@@ -83,10 +84,11 @@ export const MODELS = {
       id: "dtf",
       name: "DTF",
       kind: "The small model · Dark Token Factory",
-      line: "One re-entered well. One sealed building, robot-serviced, lights off. Compute where the heat already is.",
+      line: "One re-entered well. One two-level building: compute above, power and cooling below. Robot-serviced, lights off.",
       stats: [
         { k: "Wells", v: "1" },
         { k: "Per well pad", v: "20 MWe" },
+        { k: "Routine staff", v: "0" },
       ],
       href: "https://www.darktokenfactory.com",
       hrefLabel: "darktokenfactory.com",
@@ -105,25 +107,97 @@ export const MODELS = {
       hrefLabel: "",
     },
   ],
+  anatomy: {
+    eyebrow: "Anatomy of a DTF",
+    title: "A two-level building",
+    titleAccent: "that runs dark.",
+    intro:
+      "Built and tested in a factory, then stacked on a stationary pad by a small crew. Compute sits on Level 2. Everything that feeds it sits on Level 1, directly over one well.",
+    level2: {
+      tag: "Level 2 · Compute",
+      rail: "Robotic gantry and arm",
+      modules: [
+        { name: "Compute Module A", body: "Immersed GPU servers on native DC" },
+        { name: "Compute Module B", body: "Isolatable for service; any DTF class" },
+      ],
+    },
+    links: [
+      { id: "dc", label: "native DC" },
+      { id: "cool", label: "cooling" },
+    ],
+    level1: {
+      tag: "Level 1 · Power, cooling, stimulation and storage",
+      units: [
+        { name: "Native ORC-DC", body: "Turns well heat into native DC power", tone: "heat" },
+        { name: "GEOFLEX BESS", sub: "2 × 5 MW", body: "10 MW / 20 MWh closed-loop DC buffer", tone: "store" },
+        { name: "20.57 MWth cooling", body: "Tail-brine LiBr/NH₃ absorption chills tanks and BESS", tone: "cool" },
+        { name: "Stimulation unit", body: "N₂ nanofoam for the heat-capture zone", tone: "stim" },
+      ],
+    },
+    figures: [
+      { value: "20.0", unit: "MWe", label: "gross ORC-DC · 18.7 MW-IT net" },
+      { value: "20.57", unit: "MWth", label: "absorption cooling · PUE 1.04 target" },
+      { value: "0", unit: "", label: "people on site, routine operations" },
+    ],
+    classes: [
+      { name: "DTF-Nx", sub: "NVIDIA H100 / H200 · pilot class" },
+      { name: "DTF-A", sub: "AMD Instinct MI350X" },
+      { name: "DTF-N", sub: "NVIDIA B200 / B300 · highest density" },
+    ],
+    designedOut: {
+      title: "Designed out",
+      items: [
+        { k: "Construction and labor", v: "Built and tested in the factory, then stacked on the pad by a small crew." },
+        { k: "IT people", v: "Robots swap servers in ≤15 minutes (target), supervised remotely." },
+        { k: "Transformers", v: "Native DC from ORC to BESS to GPUs: no substation transformer." },
+        { k: "Switchboards", v: "DC distribution and protection integrated and tested in the factory." },
+        { k: "Lighting and occupancy", v: "No lights, no people, no occupancy loads: power goes to compute." },
+      ],
+    },
+    note: "Design targets, to be verified in the pilot. 10-branch wellpad basis: 140 MWth → 20.0 MWe gross → 19.2 MWe net → 18.7 MW-IT; dynamically scalable 2–20 MWe. Not every well qualifies: candidates are screened for heat, integrity and access.",
+  },
+  spine: {
+    eyebrow: "The heat engine",
+    title: "Ten slots.",
+    titleAccent: "One stationary pad.",
+    intro:
+      "A verified idle well becomes a power spine: a ten-slot colloidal conductor neck, a slim 3-inch central sensor core, and ten branches sidetracked from pre-milled whipstock slots, each running to about 4.5 km into 150–200 °C rock. Branch 1 is drilled first. The rest follow without moving the pad.",
+    steps: [
+      { n: "01", tag: "Re-enter", title: "Ten-slot neck and a 3-inch sensor core", body: "0–500 m carries six slots, 500–1,000 m four. The intact central well keeps continuous fibre-optic and pressure sensing." },
+      { n: "02", tag: "Capture", title: "Helix “DNA” geocasing", body: "Whipstock sidetracks reach 4.5 km. Molded chambers carrying graphene and borophene nanoparticles drive heat into the sealed loop." },
+      { n: "03", tag: "Stimulate and stabilise", title: "N₂ nanofoam and NanoVault", body: "Nanofoam opens high-surface-area thermal pathways; the surface NanoVault and BESS buffer steady the heat for the ORC and the chillers." },
+      { n: "04", tag: "Convert and scale", title: "Native ORC-DC, no rig move", body: "Ten branches of 14.0 MWth each feed a low-boiling nanofluid ORC. Output scales from 2 to 20 MWe as branches come online." },
+    ],
+    figures: [
+      { value: "80–200", unit: "°C", label: "operating window" },
+      { value: "4.5", unit: "km", label: "branch depth, 3″ sensor core" },
+      { value: "10", unit: "", label: "slots, pre-milled on one pad" },
+    ],
+  },
   specs: [
-    { k: "Form", dtf: "One sealed, prefabricated two-level building on a fenced well pad", xerxes: "Central hub + 6 compute pods under a nano-shell roof" },
-    { k: "Wells", dtf: "1 re-entered existing oil & gas well", xerxes: "12 wells · 2 under each pod · 50 m apart" },
-    { k: "Branches", dtf: "4, growing to 10, around a central motherbore core", xerxes: "10 directional branches per well · 120 in total" },
-    { k: "Depth", dtf: "Original bore, then sidetracks into hotter rock", xerxes: "About 5 km on every branch" },
-    { k: "Power", dtf: "20 MWe per well pad · Native ORC-DC generator", xerxes: "Up to 50 MW per well · 54 MWe net modelled" },
+    { k: "Form", dtf: "One prefabricated two-level building on a stationary pad: compute above, power and cooling below", xerxes: "Central hub + 6 compute pods under a nano-shell roof" },
+    { k: "Wells", dtf: "1 re-entered idle oil & gas well", xerxes: "12 wells · 2 under each pod · 50 m apart" },
+    { k: "Branches", dtf: "10 pre-milled whipstock slots · 10 branches around a 3-inch central sensor core, drilled one by one", xerxes: "10 directional branches per well · 120 in total" },
+    { k: "Depth", dtf: "Up to 4.5 km per branch, into 150–200 °C rock", xerxes: "About 5 km on every branch" },
+    { k: "Power", dtf: "20.0 MWe gross Native ORC-DC · 19.2 MWe net · scalable 2–20 MWe", xerxes: "Up to 50 MW per well · 54 MWe net modelled" },
     { k: "Compute", dtf: "About 18.7 MW of IT per pad at full build", xerxes: "Up to 1.5 ExaFLOPS reference design · 150 kW per rack" },
-    { k: "Silicon", dtf: "Open models on AMD Instinct or NVIDIA accelerators", xerxes: "NVIDIA Vera Rubin, next-gen AMD Instinct GPUs, advanced TPUs, NPUs and new high-density chips" },
-    { k: "Cooling", dtf: "Servers immersed in dielectric coolant · heat-driven absorption chiller", xerxes: "Closed-loop CO₂ liquid cooling · nano-shell roof captures wind and cold for the chillers · heat recovered and reused" },
-    { k: "Operation", dtf: "Lights-out, robot-serviced, run from central command", xerxes: "AI GMS autonomous operation, with human oversight" },
-    { k: "Status", dtf: "Design nearly final · first pilot is a target, not a commitment", xerxes: "KSA programme on standby · no dates committed" },
+    { k: "Silicon", dtf: "Three classes: DTF-Nx (NVIDIA H100/H200), DTF-A (AMD Instinct MI350X), DTF-N (NVIDIA B200/B300)", xerxes: "NVIDIA Vera Rubin, next-gen AMD Instinct GPUs, advanced TPUs, NPUs and new high-density chips" },
+    { k: "Cooling", dtf: "Servers immersed in dielectric coolant · 20.57 MWth tail-brine absorption cooling · PUE 1.04 target", xerxes: "Closed-loop CO₂ liquid cooling · nano-shell roof captures wind and cold for the chillers · heat recovered and reused" },
+    { k: "Operation", dtf: "Lights-out: zero people on site for routine operations · gantry and arm swap a server in ≤15 min (target)", xerxes: "AI GMS autonomous operation, with human oversight" },
+    { k: "Status", dtf: "Design stage · first pilot is a target, not a commitment", xerxes: "KSA programme on standby · no dates committed" },
   ],
   footnote:
-    "All figures are design targets or modelled values, not audited operating data. DTF: per darktokenfactory.com; no DTF facility is yet in operation and accelerator figures are vendor-published. Xerxes: White Paper V-1F and design intent.",
+    "All figures are design targets or modelled values, not audited operating data. DTF: per the DTF design basis and darktokenfactory.com; no DTF facility is yet in operation and accelerator figures are vendor-published. Xerxes: White Paper V-1F and design intent.",
   room: {
     eyebrow: "Inside a DTF",
     title: "Lights out. Robots in.",
-    body: "Every server sits fully immersed in dielectric coolant, cooled by the heat-driven loop beneath it. An overhead gantry lifts each sled out for inspection or swap; a service robot runs the parts. The same well that powers the room cools it. Nobody goes inside.",
-    caption: "Illustrative visualisation of a DTF data room.",
+    body: "Every server sits fully immersed in dielectric coolant, cooled by the absorption loop beneath it. A gantry and arm run overhead on a fixed service path: lift, swap and return. A failed server is pulled, replaced with a spare and back in service in fifteen minutes or less, as a design target. Nobody goes inside.",
+    stats: [
+      { value: "≤15", unit: "min", label: "server swap, target" },
+      { value: "≥99.5", unit: "%", label: "robot-cell acceptance target, 500 cycles" },
+      { value: "~5", unit: "µs/km", label: "one-way delay in fibre" },
+    ],
+    caption: "Concept render of a DTF compute level.",
   },
 };
 

@@ -3,6 +3,7 @@ import { A } from "@/lib/assets";
 import { MODELS } from "@/lib/content";
 import { requestContact } from "@/lib/interest";
 import { gsap, prefersReducedMotion } from "@/lib/smooth";
+import DtfAnatomy from "./DtfAnatomy";
 import { Arrow, Eyebrow, LazyMount, SceneBoundary } from "./ui";
 
 const CampusScene = lazy(() => import("./CampusScene"));
@@ -10,17 +11,17 @@ const CampusScene = lazy(() => import("./CampusScene"));
 type Mode = "dtf" | "compare" | "xerxes";
 
 const CAPTIONS: Record<Mode, string> = {
-  dtf: "DTF — one re-entered well, one sealed building, robot-serviced. Four branches today, planned to grow to ten.",
-  compare: "Same principle, different scale. One well against twelve. Four branches against 120.",
+  dtf: "DTF — one re-entered well and one two-level building: compute on Level 2, power and cooling on Level 1. Ten branches, robot-serviced, lights off.",
+  compare: "Same principle, different scale. One well against twelve. Ten branches against 120.",
   xerxes: "XERXES — a hub and six pods over twelve wells, two under every pod, fifty metres apart. Ten branches a well: 120 in all.",
 };
 
 /** Key to the 3D model, per view. Colours match what is drawn in the scene. */
 const LEGEND: Record<Mode, { c: string; dashed?: boolean; t: string }[]> = {
   dtf: [
-    { c: "#ff7a3a", t: "Sealed two-level building: energy below, compute above" },
-    { c: "#ffb48a", dashed: true, t: "Reserve footprint for Building 2" },
-    { c: "#3d8bff", t: "One re-entered well: 4 branches, dashed ones planned" },
+    { c: "#3d8bff", t: "Level 2: two compute modules under a robotic gantry" },
+    { c: "#ff7a3a", t: "Level 1: ORC-DC, BESS, absorption cooling, stimulation" },
+    { c: "#ff9055", t: "One re-entered well: ten branches off a 10-slot neck" },
   ],
   compare: [
     { c: "#ffffff", t: "Left: DTF, one well pad" },
@@ -35,7 +36,7 @@ const LEGEND: Record<Mode, { c: string; dashed?: boolean; t: string }[]> = {
 
 const SCALE_BARS = [
   { label: "Wells", a: 100 / 12, b: 100, aText: "1", bText: "12" },
-  { label: "Branches", a: (10 / 120) * 100, b: 100, aText: "4 → 10", bText: "120" },
+  { label: "Branches", a: (10 / 120) * 100, b: 100, aText: "10", bText: "120" },
 ];
 
 function ScaleBar({ label, a, b, aText, bText }: { label: string; a: number; b: number; aText: string; bText: string }) {
@@ -118,7 +119,7 @@ export default function Models() {
               <div className="absolute inset-0">
                 <img
                   src={mode === "dtf" ? A.dtfPad : A.hero}
-                  alt={mode === "dtf" ? "A DTF: a fenced well pad with one sealed building, battery storage and a wellhead, at dusk" : "Xerxes campus: a central hub with six compute pods at dusk"}
+                  alt={mode === "dtf" ? "A DTF: a two-level prefabricated building with a roof gantry beside a green steel wellhead, at dusk" : "Xerxes campus: a central hub with six compute pods at dusk"}
                   className="h-full w-full object-cover opacity-80"
                 />
               </div>
@@ -210,13 +211,19 @@ export default function Models() {
                   src={small ? A.dtfPad : A.hero}
                   alt={
                     small
-                      ? "A Dark Token Factory: a fenced well pad with one sealed building, battery storage and a wellhead, at dusk"
+                      ? "A Dark Token Factory: a two-level prefabricated building with a roof gantry beside a green steel wellhead, at dusk"
                       : "Xerxes campus — central hub with six compute pods at dusk"
                   }
                   loading="lazy"
                   className={`absolute inset-0 h-full w-full object-cover transition-transform duration-[1600ms] ease-out group-hover:scale-[1.06] ${small ? "object-[62%_50%]" : ""}`}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/10 sm:via-black/30 sm:to-transparent" />
+                <div
+                  className={`absolute inset-0 bg-gradient-to-t ${
+                    small
+                      ? "from-black/95 via-black/70 to-black/5 sm:via-black/60"
+                      : "from-black/90 via-black/50 to-black/10 sm:via-black/30 sm:to-transparent"
+                  }`}
+                />
                 <div className="absolute inset-0 flex flex-col justify-end p-6 sm:p-8">
                   <span className="mono text-[0.64rem] uppercase tracking-[0.22em] text-magma-hi">{c.kind}</span>
                   <h3 className={`display mt-2 ${small ? "text-[clamp(2.6rem,5vw,4.5rem)]" : "text-[clamp(3.4rem,8vw,8rem)]"}`}>{c.name}</h3>
@@ -248,11 +255,13 @@ export default function Models() {
           })}
         </div>
 
+        <DtfAnatomy />
+
         {/* inside a DTF */}
-        <figure data-reveal className="group relative mt-6 h-[480px] overflow-hidden bg-obsidian text-white lg:h-[560px]">
+        <figure data-reveal className="group relative mt-[clamp(3rem,6vw,5rem)] h-[520px] overflow-hidden bg-obsidian text-white lg:h-[620px]">
           <img
             src={A.dtfRoom}
-            alt="Inside a DTF data room: immersion tanks, an overhead gantry lifting a server sled and a service robot in the aisle"
+            alt="Inside a DTF compute level: immersion tanks and an overhead gantry with a robotic arm lifting a server sled, no people"
             loading="lazy"
             className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1800ms] ease-out group-hover:scale-[1.04]"
           />
@@ -261,8 +270,19 @@ export default function Models() {
           <figcaption className="absolute inset-0 flex flex-col justify-end p-6 sm:p-10 lg:justify-center lg:p-14">
             <span className="mono text-[0.64rem] uppercase tracking-[0.22em] text-magma-hi">{MODELS.room.eyebrow}</span>
             <h3 className="display mt-3 max-w-[14ch] text-[clamp(2.4rem,5vw,4.6rem)]">{MODELS.room.title}</h3>
-            <p className="mt-4 max-w-[44ch] text-[0.98rem] leading-relaxed text-white/75">{MODELS.room.body}</p>
-            <span className="mono mt-5 text-[0.58rem] uppercase tracking-[0.2em] text-white/40">{MODELS.room.caption}</span>
+            <p className="mt-4 max-w-[46ch] text-[0.98rem] leading-relaxed text-white/75">{MODELS.room.body}</p>
+            <dl className="mt-6 grid max-w-[34rem] grid-cols-3 gap-4 border-t border-white/20 pt-4">
+              {MODELS.room.stats.map(st => (
+                <div key={st.label}>
+                  <dd className="font-display text-[clamp(1.4rem,2.4vw,2rem)] font-semibold leading-none">
+                    {st.value}
+                    <span className="ml-1 text-[0.5em] font-medium text-magma-hi">{st.unit}</span>
+                  </dd>
+                  <dt className="mono mt-2 text-[0.52rem] uppercase leading-snug tracking-[0.14em] text-white/50">{st.label}</dt>
+                </div>
+              ))}
+            </dl>
+            <span className="mono mt-5 text-[0.58rem] uppercase tracking-[0.2em] text-white/40">{MODELS.room.caption} Targets, to be verified in the pilot.</span>
           </figcaption>
           <div className="brackets" aria-hidden>
             <i />

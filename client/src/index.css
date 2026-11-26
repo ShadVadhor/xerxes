@@ -479,3 +479,43 @@ html.lenis body {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* DTF anatomy: robot gantry carriage and the two rising service links (native DC, cooling). */
+@keyframes dtf-gantry {
+  0% {
+    left: 8%;
+  }
+  100% {
+    left: calc(92% - 1.6rem);
+  }
+}
+@keyframes dtf-rise {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  82% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-3.2rem);
+    opacity: 0;
+  }
+}
+.dtf-gantry {
+  animation: dtf-gantry 7s cubic-bezier(0.6, 0, 0.3, 1) infinite alternate;
+}
+.dtf-rise {
+  animation: dtf-rise 2.2s linear infinite;
+}
+.dtf-flow {
+  stroke-dasharray: 4 16;
+  animation: flow-dash 2.6s linear infinite;
+}
+.dtf-flow-rev {
+  stroke-dasharray: 4 16;
+  animation: flow-dash 2.6s linear infinite reverse;
+}
