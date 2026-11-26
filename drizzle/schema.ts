@@ -25,4 +25,17 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+/** Contact / access requests submitted from the public site */
+export const inquiries = mysqlTable("inquiries", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 160 }).notNull(),
+  organization: varchar("organization", { length: 200 }),
+  email: varchar("email", { length: 320 }).notNull(),
+  interest: varchar("interest", { length: 80 }).notNull(),
+  message: text("message"),
+  source: varchar("source", { length: 80 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Inquiry = typeof inquiries.$inferSelect;
+export type InsertInquiry = typeof inquiries.$inferInsert;

@@ -1,0 +1,21 @@
+/** Central map of every visual asset used by the site (project storage paths). */
+export const A = {
+  mark: "/manus-storage/xerxes-mark_41386a7c.png",
+  hero: "/manus-storage/hero_campus_dusk_9d8ca30c.webp",
+  hall: "/manus-storage/data_hall_main_39d9493e.webp",
+  cutaway: "/manus-storage/geothermal_cutaway_7b1c9bcd.webp",
+  wells: "/manus-storage/wells_underground_89872bd0.webp",
+  dtf: "/manus-storage/dtf_compact_3aa53362.webp",
+  command: "/manus-storage/command_center_bb50c5bc.webp",
+  cooling: "/manus-storage/cooling_gallery_b89138bd.webp",
+  rack: "/manus-storage/rack_macro_03d2cbfb.webp",
+  perimeter: "/manus-storage/secure_perimeter_8aaae456.webp",
+  ksa: "/manus-storage/ksa_standby_1c0ce883.webp",
+  wellpad: "/manus-storage/wellpad_da4e0f88.webp",
+  hallVideo: "/manus-storage/hall_flythrough_web_6abfd1c7.mp4",
+  hallPoster: "/manus-storage/hall_poster_ccbe72b6.jpg",
+  heroVideo: "/manus-storage/hero_loop_720_36cf8034.mp4",
+  heroVideoMobile: "/manus-storage/hero_loop_mobile_bdaf603c.mp4",
+  heroPoster: "/manus-storage/hero_poster_be149e93.jpg",
+  hubRender: "/manus-storage/hub_render_082e1c16.webp",
+} as const;

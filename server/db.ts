@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertInquiry, InsertUser, inquiries, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -88,4 +88,14 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+
+/** Persist a contact/access inquiry. Returns false when the database is unavailable. */
+export async function createInquiry(data: InsertInquiry): Promise<boolean> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot store inquiry: database not available");
+    return false;
+  }
+  await db.insert(inquiries).values(data);
+  return true;
+}
