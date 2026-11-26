@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { A } from "@/lib/assets";
-import { HALL } from "@/lib/content";
+import { HALL, SHELL } from "@/lib/content";
 import { gsap, prefersReducedMotion } from "@/lib/smooth";
 import { Eyebrow } from "./ui";
 
@@ -142,6 +142,111 @@ export default function DataHall() {
             </li>
           ))}
         </ul>
+      </div>
+
+
+      {/* silicon: what the racks are built to host */}
+      <div className="wrap mt-[clamp(4rem,8vw,7rem)]">
+        <div data-reveal className="mono flex items-center gap-4 text-[0.66rem] uppercase tracking-[0.22em] text-led-hi">
+          <span className="inline-block h-px w-10 bg-led" />
+          {HALL.silicon.label}
+        </div>
+        <ul className="mt-6 grid grid-cols-2 gap-px bg-white/10 sm:grid-cols-3 lg:grid-cols-5">
+          {HALL.silicon.chips.map((c, i) => (
+            <li
+              key={c.name}
+              data-reveal
+              data-reveal-delay={String(i * 0.07)}
+              className="group relative bg-obsidian p-5 transition-colors duration-500 hover:bg-[#0d1119] sm:p-6 lg:min-h-[168px]"
+            >
+              <span className="mono text-[0.58rem] tracking-[0.22em] text-white/35">{String(i + 1).padStart(2, "0")}</span>
+              <div className="display mt-6 text-[clamp(1.25rem,1.9vw,1.7rem)] leading-[1.05] text-white">{c.name}</div>
+              <div className="mono mt-3 text-[0.58rem] uppercase tracking-[0.18em] text-white/50">{c.sub}</div>
+              <span className="absolute inset-x-0 bottom-0 h-px origin-left scale-x-0 bg-gradient-to-r from-led to-led-hi transition-transform duration-700 group-hover:scale-x-100" aria-hidden />
+            </li>
+          ))}
+        </ul>
+        <p data-reveal className="mono mt-4 max-w-[90ch] text-[0.6rem] leading-relaxed tracking-[0.1em] text-white/35">
+          {HALL.silicon.note}
+        </p>
+      </div>
+
+      {/* the shell: wind and cold in, heat recovered */}
+      <div className="wrap mt-[clamp(5rem,10vw,9rem)]">
+        <div className="grid gap-10 lg:grid-cols-12 lg:items-center lg:gap-14">
+          <div className="lg:col-span-5">
+            <Eyebrow>
+              <span data-reveal>{SHELL.eyebrow}</span>
+            </Eyebrow>
+            <h3 data-reveal className="display mt-6 text-[clamp(2.2rem,4.6vw,4.4rem)] text-white">
+              {SHELL.title}
+              <br />
+              <span className="accent-serif text-led-hi">{SHELL.titleAccent}</span>
+            </h3>
+            <p data-reveal className="mt-6 max-w-[48ch] text-[1.02rem] leading-relaxed text-white/65">
+              {SHELL.body}
+            </p>
+          </div>
+          <figure data-reveal className="group relative aspect-[16/10] overflow-hidden bg-basalt lg:col-span-7">
+            <img
+              src={A.shell}
+              alt={SHELL.alt}
+              loading="lazy"
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-[2200ms] ease-out group-hover:scale-[1.04]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-obsidian/60 via-transparent to-obsidian/10" />
+            {/* wind and cold, drifting across the roof */}
+            <svg aria-hidden viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" className="pointer-events-none absolute inset-0 h-full w-full">
+              {[
+                "M -80 330 C 260 250, 520 440, 820 380 S 1300 300, 1700 420",
+                "M -80 520 C 300 430, 560 640, 900 560 S 1360 470, 1700 600",
+                "M -80 700 C 280 640, 600 820, 960 730 S 1380 660, 1700 770",
+              ].map((d, i) => (
+                <path
+                  key={i}
+                  d={d}
+                  fill="none"
+                  stroke="#bfe3ff"
+                  strokeWidth={3 - i * 0.4}
+                  strokeLinecap="round"
+                  strokeDasharray="220 780"
+                  style={{ animation: `streak-drift ${7 + i * 1.6}s linear ${i * 1.3}s infinite`, filter: "drop-shadow(0 0 8px #8fd0ff)" }}
+                />
+              ))}
+            </svg>
+            <div className="brackets m-3" aria-hidden>
+              <i />
+            </div>
+            <figcaption className="mono absolute bottom-4 left-5 text-[0.58rem] uppercase tracking-[0.22em] text-white/60">
+              Nano-shell roof · wind + cold capture
+            </figcaption>
+          </figure>
+        </div>
+
+        <ol className="relative mt-12 grid gap-px bg-white/10 sm:grid-cols-2 lg:grid-cols-4">
+          {SHELL.steps.map((s, i) => (
+            <li key={s.n} data-reveal data-reveal-delay={String(i * 0.08)} className="relative bg-obsidian p-6 sm:p-7">
+              <span
+                aria-hidden
+                className="absolute inset-x-0 top-0 h-[3px]"
+                style={{
+                  backgroundImage:
+                    s.tone === "heat"
+                      ? "repeating-linear-gradient(90deg, #ff5a1f 0 16px, rgba(255,90,31,0.25) 16px 48px)"
+                      : "repeating-linear-gradient(90deg, #8fd0ff 0 16px, rgba(143,208,255,0.22) 16px 48px)",
+                  backgroundSize: "48px 3px",
+                  animation: "flow-x 2.4s linear infinite",
+                }}
+              />
+              <div className="flex items-baseline gap-3">
+                <span className={`mono text-[0.62rem] tracking-[0.22em] ${s.tone === "heat" ? "text-magma-hi" : "text-led-hi"}`}>{s.n}</span>
+                <span className="display text-[1.6rem] text-white">{s.t}</span>
+              </div>
+              <p className="mt-3 max-w-[34ch] text-[0.94rem] leading-relaxed text-white/60">{s.d}</p>
+            </li>
+          ))}
+        </ol>
+        <p className="mono mt-4 text-[0.6rem] tracking-[0.12em] text-white/35">{SHELL.note}</p>
       </div>
 
       {/* horizontal gallery */}

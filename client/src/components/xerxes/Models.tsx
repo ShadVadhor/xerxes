@@ -10,10 +10,33 @@ const CampusScene = lazy(() => import("./CampusScene"));
 type Mode = "dtf" | "compare" | "xerxes";
 
 const CAPTIONS: Record<Mode, string> = {
-  dtf: "DTF — one compute pod on a compact hub. Up to 500 PetaFLOPS.",
-  compare: "Same architecture. Six pods instead of one. Three times the compute.",
-  xerxes: "XERXES — a central hub, six pods, ten geothermal branches. Up to 1.5 ExaFLOPS.",
+  dtf: "DTF — one re-entered well, one sealed building, robot-serviced. Four branches today, planned to grow to ten.",
+  compare: "Same principle, different scale. One well against twelve. Four branches against 120.",
+  xerxes: "XERXES — a hub and six pods over twelve wells, two under every pod, fifty metres apart. Ten branches a well: 120 in all.",
 };
+
+/** Key to the 3D model, per view. Colours match what is drawn in the scene. */
+const LEGEND: Record<Mode, { c: string; dashed?: boolean; t: string }[]> = {
+  dtf: [
+    { c: "#ff7a3a", t: "Sealed two-level building: energy below, compute above" },
+    { c: "#ffb48a", dashed: true, t: "Reserve footprint for Building 2" },
+    { c: "#3d8bff", t: "One re-entered well: 4 branches, dashed ones planned" },
+  ],
+  compare: [
+    { c: "#ffffff", t: "Left: DTF, one well pad" },
+    { c: "#ff5a1f", t: "Right: Xerxes, twelve wells, 120 branches" },
+  ],
+  xerxes: [
+    { c: "#ff5a1f", t: "Production branches carry heat up" },
+    { c: "#3d8bff", t: "Injection branches carry fluid down" },
+    { c: "#8fd0ff", t: "Wind and cold gathered by the nano-shell roof" },
+  ],
+};
+
+const SCALE_BARS = [
+  { label: "Wells", a: 100 / 12, b: 100, aText: "1", bText: "12" },
+  { label: "Branches", a: (10 / 120) * 100, b: 100, aText: "4 → 10", bText: "120" },
+];
 
 function ScaleBar({ label, a, b, aText, bText }: { label: string; a: number; b: number; aText: string; bText: string }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -94,8 +117,8 @@ export default function Models() {
             {noGl ? (
               <div className="absolute inset-0">
                 <img
-                  src={mode === "dtf" ? A.dtf : A.hero}
-                  alt={mode === "dtf" ? "DTF compact data center render" : "Xerxes campus render"}
+                  src={mode === "dtf" ? A.dtfPad : A.hero}
+                  alt={mode === "dtf" ? "A DTF: a fenced well pad with one sealed building, battery storage and a wellhead, at dusk" : "Xerxes campus: a central hub with six compute pods at dusk"}
                   className="h-full w-full object-cover opacity-80"
                 />
               </div>
@@ -142,8 +165,22 @@ export default function Models() {
             </div>
           </div>
 
+          {/* key */}
+          <ul key={`legend-${mode}`} className="pointer-events-none absolute left-4 top-[4.5rem] hidden max-w-[17rem] space-y-2 animate-in fade-in duration-700 md:block sm:left-6">
+            {LEGEND[mode].map(l => (
+              <li key={l.t} className="flex items-start gap-3 text-[0.72rem] leading-snug text-white/70">
+                <span
+                  aria-hidden
+                  className="mt-[0.3rem] block h-[7px] w-[7px] shrink-0 rounded-full"
+                  style={l.dashed ? { border: `1px dashed ${l.c}` } : { background: l.c, boxShadow: `0 0 8px ${l.c}` }}
+                />
+                {l.t}
+              </li>
+            ))}
+          </ul>
+
           <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-3 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-4 pt-16 sm:flex-row sm:items-end sm:justify-between sm:p-6">
-            <p key={mode} className="max-w-[46ch] text-[1.02rem] leading-snug text-white animate-in fade-in slide-in-from-bottom-2 duration-700">
+            <p key={mode} className="max-w-[52ch] text-[1.02rem] leading-snug text-white animate-in fade-in slide-in-from-bottom-2 duration-700">
               {CAPTIONS[mode]}
             </p>
             <span className="mono text-[0.6rem] uppercase tracking-[0.22em] text-white/45">{MODELS.viewerNote}</span>
@@ -152,8 +189,9 @@ export default function Models() {
 
         {/* scale index */}
         <div data-reveal className="mt-10 grid gap-6 border-y border-border py-8 lg:grid-cols-2 lg:gap-16">
-          <ScaleBar label="Compute pods" a={16.7} b={100} aText="1" bText="6" />
-          <ScaleBar label="Peak compute" a={33.3} b={100} aText="0.5 EF" bText="1.5 EF" />
+          {SCALE_BARS.map(s => (
+            <ScaleBar key={s.label} {...s} />
+          ))}
         </div>
 
         {/* photographic split — deliberately unequal */}
@@ -169,26 +207,38 @@ export default function Models() {
                 }`}
               >
                 <img
-                  src={small ? A.dtf : A.hero}
-                  alt={small ? "DTF compact data center — one pod on a small hub" : "Xerxes campus — central hub with six compute pods at dusk"}
+                  src={small ? A.dtfPad : A.hero}
+                  alt={
+                    small
+                      ? "A Dark Token Factory: a fenced well pad with one sealed building, battery storage and a wellhead, at dusk"
+                      : "Xerxes campus — central hub with six compute pods at dusk"
+                  }
                   loading="lazy"
-                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1600ms] ease-out group-hover:scale-[1.06]"
+                  className={`absolute inset-0 h-full w-full object-cover transition-transform duration-[1600ms] ease-out group-hover:scale-[1.06] ${small ? "object-[62%_50%]" : ""}`}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/10 sm:via-black/30 sm:to-transparent" />
                 <div className="absolute inset-0 flex flex-col justify-end p-6 sm:p-8">
                   <span className="mono text-[0.64rem] uppercase tracking-[0.22em] text-magma-hi">{c.kind}</span>
                   <h3 className={`display mt-2 ${small ? "text-[clamp(2.6rem,5vw,4.5rem)]" : "text-[clamp(3.4rem,8vw,8rem)]"}`}>{c.name}</h3>
                   <p className="mt-3 max-w-[40ch] text-[0.98rem] leading-relaxed text-white/75">{c.line}</p>
-                  <dl className="mt-5 flex gap-8 border-t border-white/20 pt-4">
-                    <div>
-                      <dt className="mono text-[0.58rem] uppercase tracking-[0.2em] text-white/45">Compute pods</dt>
-                      <dd className="font-display text-2xl font-semibold">{c.pods}</dd>
-                    </div>
-                    <div>
-                      <dt className="mono text-[0.58rem] uppercase tracking-[0.2em] text-white/45">Peak compute</dt>
-                      <dd className="font-display text-2xl font-semibold">{c.compute}</dd>
-                    </div>
+                  <dl className="mt-5 flex flex-wrap gap-x-8 gap-y-3 border-t border-white/20 pt-4">
+                    {c.stats.map(s => (
+                      <div key={s.k}>
+                        <dt className="mono text-[0.58rem] uppercase tracking-[0.2em] text-white/45">{s.k}</dt>
+                        <dd className="font-display text-2xl font-semibold">{s.v}</dd>
+                      </div>
+                    ))}
                   </dl>
+                  {c.href && (
+                    <a
+                      href={c.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mono mt-5 inline-flex w-fit items-center gap-2 border-b border-white/30 pb-1 text-[0.66rem] uppercase tracking-[0.2em] text-white/80 transition-colors hover:border-magma-hi hover:text-magma-hi"
+                    >
+                      {c.hrefLabel} <span aria-hidden>↗</span>
+                    </a>
+                  )}
                 </div>
                 <div className="brackets" aria-hidden>
                   <i />
@@ -197,6 +247,27 @@ export default function Models() {
             );
           })}
         </div>
+
+        {/* inside a DTF */}
+        <figure data-reveal className="group relative mt-6 h-[480px] overflow-hidden bg-obsidian text-white lg:h-[560px]">
+          <img
+            src={A.dtfRoom}
+            alt="Inside a DTF data room: immersion tanks, an overhead gantry lifting a server sled and a service robot in the aisle"
+            loading="lazy"
+            className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1800ms] ease-out group-hover:scale-[1.04]"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/45 to-transparent lg:from-black/80 lg:via-black/25" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+          <figcaption className="absolute inset-0 flex flex-col justify-end p-6 sm:p-10 lg:justify-center lg:p-14">
+            <span className="mono text-[0.64rem] uppercase tracking-[0.22em] text-magma-hi">{MODELS.room.eyebrow}</span>
+            <h3 className="display mt-3 max-w-[14ch] text-[clamp(2.4rem,5vw,4.6rem)]">{MODELS.room.title}</h3>
+            <p className="mt-4 max-w-[44ch] text-[0.98rem] leading-relaxed text-white/75">{MODELS.room.body}</p>
+            <span className="mono mt-5 text-[0.58rem] uppercase tracking-[0.2em] text-white/40">{MODELS.room.caption}</span>
+          </figcaption>
+          <div className="brackets" aria-hidden>
+            <i />
+          </div>
+        </figure>
 
         {/* spec table */}
         <div data-reveal className="mt-[clamp(3.5rem,7vw,6rem)]">
@@ -227,14 +298,10 @@ export default function Models() {
         </div>
 
         <div data-reveal className="mt-10 flex flex-wrap gap-3">
-          <button type="button" className="btn-magma" onClick={() => requestContact("DTF — compact model", "models")}>
+          <button type="button" className="btn-magma" onClick={() => requestContact("DTF — Dark Token Factory", "models")}>
             Enquire about DTF <Arrow />
           </button>
-          <button
-            type="button"
-            className="btn-ghost"
-            onClick={() => requestContact("Xerxes — hyperscale campus", "models")}
-          >
+          <button type="button" className="btn-ghost" onClick={() => requestContact("Xerxes — hyperscale campus", "models")}>
             Enquire about Xerxes
           </button>
         </div>

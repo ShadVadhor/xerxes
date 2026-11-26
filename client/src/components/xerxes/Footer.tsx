@@ -7,6 +7,10 @@ import { Logo } from "./ui";
 export const FOOTER_UI = {
   backToTop: "Back to top",
   programme: "KSA programme: on standby — resuming with partners",
+  related: [
+    { label: "DARKTOKENFACTORY.COM", href: "https://www.darktokenfactory.com" },
+    { label: "GEIOS.ENERGY", href: "https://www.geios.energy" },
+  ],
   disclaimer: "Performance figures are design targets and modelled values per White Paper V-1F (02 May 2025), not audited operating data. Renders are illustrative.",
 };
 
@@ -45,12 +49,20 @@ export default function Footer() {
           </div>
         </div>
 
-        <a href="#programme" onClick={event => { event.preventDefault(); scrollToId("programme"); }} className="group my-9 inline-flex max-w-full items-center gap-4 focus-visible:outline-1 focus-visible:outline-offset-8 focus-visible:outline-magma-hi">
+        <div className="my-9 flex flex-wrap items-center gap-x-10 gap-y-5">
+        <a href="#programme" onClick={event => { event.preventDefault(); scrollToId("programme"); }} className="group inline-flex max-w-full items-center gap-4 focus-visible:outline-1 focus-visible:outline-offset-8 focus-visible:outline-magma-hi">
           <span className="pulse-dot ml-1 inline-block shrink-0" aria-hidden="true" />
           <span className="mono text-[0.6rem] leading-relaxed tracking-[0.05em] text-muted-foreground transition-colors group-hover:text-magma-hi sm:text-[0.65rem]">{FOOTER_UI.programme}</span>
           <ArrowUpRight size={14} strokeWidth={1} className="hidden shrink-0 text-magma-hi sm:block" aria-hidden="true" />
         </a>
-
+        <p className="flex flex-wrap items-center gap-x-6 gap-y-2">
+          {FOOTER_UI.related.map(item => (
+            <a key={item.href} href={item.href} target="_blank" rel="noopener noreferrer" className="mono group inline-flex items-center gap-1.5 text-[0.6rem] tracking-[0.08em] text-ceramic/55 transition-colors hover:text-magma-hi focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-magma-hi sm:text-[0.65rem]">
+              {item.label}<ArrowUpRight size={12} strokeWidth={1} aria-hidden="true" /><span className="sr-only"> (opens in a new tab)</span>
+            </a>
+          ))}
+        </p>
+        </div>
         <div className="grid gap-5 border-t border-border py-8 lg:grid-cols-[1fr_1.1fr] lg:gap-14">
           <p className="mono text-[0.55rem] leading-relaxed tracking-[0.03em] text-ceramic/45">© 2026 {COMPANY.entities.map(entity => entity.name).join(" · ")}</p>
           <p className="mono max-w-[95ch] text-[0.55rem] leading-relaxed tracking-[0.015em] text-ceramic/35">{FOOTER_UI.disclaimer}</p>

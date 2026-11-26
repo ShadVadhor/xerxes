@@ -5,7 +5,6 @@ export const A = {
   hall: "/manus-storage/data_hall_main_39d9493e.webp",
   cutaway: "/manus-storage/geothermal_cutaway_7b1c9bcd.webp",
   wells: "/manus-storage/wells_underground_89872bd0.webp",
-  dtf: "/manus-storage/dtf_compact_3aa53362.webp",
   command: "/manus-storage/command_center_bb50c5bc.webp",
   cooling: "/manus-storage/cooling_gallery_b89138bd.webp",
   rack: "/manus-storage/rack_macro_03d2cbfb.webp",
@@ -18,4 +17,7 @@ export const A = {
   heroVideoMobile: "/manus-storage/hero_loop_mobile_bdaf603c.mp4",
   heroPoster: "/manus-storage/hero_poster_be149e93.jpg",
   hubRender: "/manus-storage/hub_render_082e1c16.webp",
+  dtfPad: "/manus-storage/dtf_pad_fa0939ef.webp",
+  dtfRoom: "/manus-storage/dtf_immersion_0e30b7e0.webp",
+  shell: "/manus-storage/xerxes_shell_d1cec2de.webp",
 } as const;

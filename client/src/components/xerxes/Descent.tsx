@@ -7,7 +7,7 @@ import { LazyMount, SceneBoundary } from "./ui";
 const DescentScene = lazy(() => import("./DescentScene"));
 
 /** Progress at which each text step begins — matches the scene's camera beats */
-const BEATS = [0, 0.15, 0.4, 0.6, 0.85];
+const BEATS = [0, 0.14, 0.27, 0.45, 0.65, 0.87];
 
 export default function Descent() {
   const outer = useRef<HTMLElement>(null);

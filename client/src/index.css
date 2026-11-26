@@ -441,6 +441,27 @@ html.lenis body {
     stroke-dashoffset: -40;
   }
 }
+@keyframes flow-x {
+  to {
+    background-position: 48px 0;
+  }
+}
+@keyframes streak-drift {
+  0% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: -1000;
+    opacity: 0;
+  }
+}
 
 /* Reveal system — only hide when JS is running and motion is allowed */
 @media (prefers-reduced-motion: no-preference) {

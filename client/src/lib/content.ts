@@ -1,9 +1,10 @@
 /**
  * All copy + figures for the Xerxes site live here so they are easy to edit.
  *
- * Source of truth: the previous xerxes.nexus site and White Paper V-1F (02 May 2025).
+ * Sources: the previous xerxes.nexus site and White Paper V-1F (02 May 2025); the Xerxes well-field geometry
+ * (12 wells, 10 directional branches each, ~5 km deep, 50 m between wells) and the nano-shell roof as briefed by the
+ * client; the DTF (Dark Token Factory) facts from www.darktokenfactory.com; EQG technology from www.geios.energy.
  * Every performance figure is a DESIGN TARGET or MODELLED value, not audited operating data.
- * NOTE: the DTF (compact model) figures are mapped from the previous site's "Spartan" compact-model row.
  */
 
 export const SITE = {
@@ -40,7 +41,7 @@ export const CHAPTERS = [
 /** Hero HUD phases keyed to the loop film (seconds into the 19s loop) */
 export const HERO_PHASES = [
   { from: 0, to: 7.4, tag: "01 / SURFACE", line: "A campus that asks nothing of the grid." },
-  { from: 7.4, to: 15, tag: "02 / DESCENT", line: "One shaft. Ten branches. Fifty megawatts a well." },
+  { from: 7.4, to: 15, tag: "02 / DESCENT", line: "Twelve wells. One hundred and twenty branches. Five kilometres down." },
   { from: 15, to: 19.1, tag: "03 / COMPUTE", line: "Heat becomes intelligence." },
 ];
 
@@ -48,14 +49,14 @@ export const HERO_TELEMETRY = [
   { value: 1.5, decimals: 1, unit: "EF", label: "Compute, up to" },
   { value: 1.05, decimals: 2, unit: "", label: "Design PUE" },
   { value: 150, decimals: 0, unit: "kW", label: "Per rack" },
+  { value: 120, decimals: 0, unit: "", label: "Geothermal branches" },
   { value: 0, decimals: 0, unit: "L", label: "Water for cooling" },
-  { value: 100, decimals: 0, unit: "%", label: "Off-grid" },
 ];
 
 export const MANIFESTO = {
   eyebrow: "01 — The premise",
   text:
-    "Every other data center is a tenant of someone else's grid. Xerxes is its own power plant: a campus built over a closed-loop geothermal system that turns the heat of the earth directly into high-density AI compute. No grid. No water. No carbon. Just intelligence, at scale.",
+    "Every other data center is a tenant of someone else's grid. Xerxes is its own power plant: a campus built over twelve geothermal wells and 120 directional branches, five kilometres deep, turning the heat of the earth directly into high-density AI compute. No grid. No water. No carbon. Just intelligence, at scale.",
   stats: [
     { value: 100, suffix: "%", label: "Carbon negative", sub: "by design" },
     { value: 10, suffix: "×", label: "Energy efficiency", sub: "vs. conventional" },
@@ -67,10 +68,10 @@ export const MANIFESTO = {
 
 export const MODELS = {
   eyebrow: "02 — Two models, one idea",
-  title: "Small enough to deploy anywhere.",
-  titleAccent: "Large enough to change everything.",
+  title: "A node on one old well.",
+  titleAccent: "A Goliath on twelve deep ones.",
   intro:
-    "The DTF is the compact campus: one compute pod on a small hub. Xerxes is the Goliath: a central hub feeding six pods, ten geothermal branches and up to 1.5 ExaFLOPS. Same architecture. Radically different scale.",
+    "The Dark Token Factory (DTF) is the small model: a sealed, lights-out AI factory on one re-entered oil-and-gas well. Xerxes is the Goliath: a hub and six pods over twelve wells and 120 directional branches, five kilometres deep. Same principle. Take the data center to the power. Radically different scale.",
   viewerNote: "Illustrative massing — not to engineering scale",
   toggles: [
     { id: "dtf", label: "DTF" },
@@ -81,68 +82,94 @@ export const MODELS = {
     {
       id: "dtf",
       name: "DTF",
-      kind: "The compact model",
-      line: "One pod. One hub. Sovereign AI compute in a footprint you can place almost anywhere.",
-      pods: "1",
-      compute: "Up to 500 PetaFLOPS",
+      kind: "The small model · Dark Token Factory",
+      line: "One re-entered well. One sealed building, robot-serviced, lights off. Compute where the heat already is.",
+      stats: [
+        { k: "Wells", v: "1" },
+        { k: "Per well pad", v: "20 MWe" },
+      ],
+      href: "https://www.darktokenfactory.com",
+      hrefLabel: "darktokenfactory.com",
     },
     {
       id: "xerxes",
       name: "XERXES",
       kind: "The Goliath",
-      line: "A central hub, six compute pods, ten geothermal branches. A campus that is its own power plant.",
-      pods: "6",
-      compute: "Up to 1.5 ExaFLOPS",
+      line: "A central hub, six compute pods and a nano-shell roof, over twelve wells. A campus that is its own power plant.",
+      stats: [
+        { k: "Wells", v: "12" },
+        { k: "Branches", v: "120" },
+        { k: "Peak compute", v: "1.5 EF" },
+      ],
+      href: "",
+      hrefLabel: "",
     },
   ],
   specs: [
-    { k: "Compute", dtf: "Up to 500 PetaFLOPS", xerxes: "Up to 1.5 ExaFLOPS" },
-    { k: "GPU platform", dtf: "NVIDIA GH200 Grace Hopper", xerxes: "NVIDIA Blackwell, 5th gen (DGX GB200)" },
-    { k: "Interconnect", dtf: "NVLink 4.0 + Quantum-3", xerxes: "NVLink 5.0 + Quantum-3 · 80 GB/s+ per node" },
-    { k: "Design PUE", dtf: "1.2 – 1.3", xerxes: "1.05 – 1.1" },
-    { k: "Layout", dtf: "1 compute pod + compact hub", xerxes: "Central hub + 6 compute pods" },
-    { k: "Power", dtf: "Geothermal, off-grid", xerxes: "Geothermal, off-grid · 10-branch EQG" },
+    { k: "Form", dtf: "One sealed, prefabricated two-level building on a fenced well pad", xerxes: "Central hub + 6 compute pods under a nano-shell roof" },
+    { k: "Wells", dtf: "1 re-entered existing oil & gas well", xerxes: "12 wells · 2 under each pod · 50 m apart" },
+    { k: "Branches", dtf: "4, growing to 10, around a central motherbore core", xerxes: "10 directional branches per well · 120 in total" },
+    { k: "Depth", dtf: "Original bore, then sidetracks into hotter rock", xerxes: "About 5 km on every branch" },
+    { k: "Power", dtf: "20 MWe per well pad · Native ORC-DC generator", xerxes: "Up to 50 MW per well · 54 MWe net modelled" },
+    { k: "Compute", dtf: "About 18.7 MW of IT per pad at full build", xerxes: "Up to 1.5 ExaFLOPS reference design · 150 kW per rack" },
+    { k: "Silicon", dtf: "Open models on AMD Instinct or NVIDIA accelerators", xerxes: "NVIDIA Vera Rubin, next-gen AMD Instinct GPUs, advanced TPUs, NPUs and new high-density chips" },
+    { k: "Cooling", dtf: "Servers immersed in dielectric coolant · heat-driven absorption chiller", xerxes: "Closed-loop CO₂ liquid cooling · nano-shell roof captures wind and cold for the chillers · heat recovered and reused" },
+    { k: "Operation", dtf: "Lights-out, robot-serviced, run from central command", xerxes: "AI GMS autonomous operation, with human oversight" },
+    { k: "Status", dtf: "Design nearly final · first pilot is a target, not a commitment", xerxes: "KSA programme on standby · no dates committed" },
   ],
-  footnote: "Figures are design targets from White Paper V-1F. DTF values are for the compact model.",
+  footnote:
+    "All figures are design targets or modelled values, not audited operating data. DTF: per darktokenfactory.com; no DTF facility is yet in operation and accelerator figures are vendor-published. Xerxes: White Paper V-1F and design intent.",
+  room: {
+    eyebrow: "Inside a DTF",
+    title: "Lights out. Robots in.",
+    body: "Every server sits fully immersed in dielectric coolant, cooled by the heat-driven loop beneath it. An overhead gantry lifts each sled out for inspection or swap; a service robot runs the parts. The same well that powers the room cools it. Nobody goes inside.",
+    caption: "Illustrative visualisation of a DTF data room.",
+  },
 };
 
 export const DESCENT = {
   eyebrow: "03 — The technology",
   title: "Power from below.",
-  /** Order matches the scene beats: surface · shaft · branches · network · to compute */
+  /** Order matches the scene beats: surface · spacing · depth · branches · field · to compute */
   steps: [
     {
       tag: "Surface",
       title: "A campus that asks nothing of the grid.",
-      body: "Above ground: a white, low-profile campus engineered for minimal environmental footprint. Below it: the power station.",
+      body: "Above ground: a hub and six white pods under a nano-shell roof. Below them: twelve wells, two under every pod, and the power station they feed.",
       stat: null,
     },
     {
+      tag: "Well spacing",
+      title: "Two wells a pod. Fifty metres apart.",
+      body: "Each pod stands over a pair of wells, set a long fifty metres apart so that neither sits in the other's thermal shadow. Thermal interference is designed out before the first metre is drilled.",
+      stat: { value: "50", unit: "m", label: "between wells" },
+    },
+    {
       tag: "Nanomaterial pipes",
-      title: "56% more heat, moved.",
-      body: "Down a single closed-loop shaft, nanomaterial-enhanced pipework lifts heat transfer by 56% over conventional casing, pulling more usable energy from every metre of rock.",
-      stat: { value: "56", unit: "%", label: "better heat transfer" },
+      title: "Five kilometres down.",
+      body: "Down each closed-loop shaft, nanomaterial-enhanced pipework lifts heat transfer by 56% over conventional casing, pulling more usable energy from every metre of rock on the way to the reservoir.",
+      stat: { value: "5", unit: "km", label: "deep, every branch" },
     },
     {
       tag: "Enhanced Quantum Geothermal",
-      title: "One shaft. Ten branches.",
-      body: "At depth the shaft fans into ten branches — six production, four injection — delivering up to 50 MW per well. Nothing leaves the loop. Nothing is burned.",
-      stat: { value: "50", unit: "MW", label: "per well" },
+      title: "Ten branches. Every well.",
+      body: "At depth each well fans into ten directional branches, sidetracked into hotter rock and sealed in one closed loop. Production carries heat up; injection carries fluid back down. Nothing leaves the loop. Nothing is burned.",
+      stat: { value: "10", unit: "", label: "directional branches per well" },
     },
     {
-      tag: "Parasitic load",
-      title: "Only 8% to keep the loop alive.",
-      body: "Pumps, controls and conditioning take a fraction of what the field produces. The rest goes straight to compute.",
-      stat: { value: "8", unit: "%", label: "parasitic load" },
+      tag: "The whole field",
+      title: "Twelve wells. 120 branches.",
+      body: "Pull the rock away and the field appears: a root system of 120 branches beneath six pods, each branch reaching about five kilometres down, each well fifty metres from its neighbour. This is what a Goliath stands on.",
+      stat: { value: "120", unit: "", label: "branches · 12 wells" },
     },
     {
       tag: "Heat becomes intelligence",
       title: "Earth's heat, converted to compute.",
-      body: "In AI GMS simulation, 472 MWth of thermal energy yields 54 MWe net — continuous, weather-proof power for the densest racks on the planet.",
-      stat: { value: "54", unit: "MWe", label: "net, modelled" },
+      body: "Only 8% of the field's output keeps the loop alive. In AI GMS simulation, 472 MWth of thermal energy yields 54 MWe net per well: continuous, weather-proof power for the densest racks on the planet.",
+      stat: { value: "54", unit: "MWe", label: "net per well, modelled" },
     },
   ],
-  footnote: "Modelled values from AI GMS Phase 0 simulation and White Paper V-1F.",
+  footnote: "Schematic — not to scale. Geometry per Xerxes design intent; power figures modelled (AI GMS Phase 0, White Paper V-1F).",
 };
 
 export const HALL = {
@@ -150,11 +177,22 @@ export const HALL = {
   title: "The densest racks on earth,",
   titleAccent: "powered by the ground beneath them.",
   intro:
-    "Inside the pods: Blackwell-class GPUs on NVLink 5.0 and Quantum-3 InfiniBand, liquid-cooled through a closed CO₂ loop, at 150 kW per rack.",
+    "Inside the pods: racks at 150 kW, liquid-cooled through a closed CO₂ loop, and built to host whatever silicon comes next, not only what ships today.",
+  silicon: {
+    label: "Built for next-generation, high-density silicon",
+    chips: [
+      { name: "NVIDIA Vera Rubin", sub: "Next-gen GPU platform" },
+      { name: "AMD Instinct", sub: "Next-gen GPUs" },
+      { name: "Advanced TPU", sub: "Tensor accelerators" },
+      { name: "NPU", sub: "Neural processing units" },
+      { name: "New chips", sub: "High-density silicon" },
+    ],
+    note: "Reference configuration in White Paper V-1F: Blackwell-class GPUs on NVLink 5.0 and Quantum-3 InfiniBand. Platform names are vendor roadmap names, not supply commitments.",
+  },
   callouts: [
     { value: "150", unit: "kW", label: "per rack — highest density in the industry" },
-    { value: "144,000+", unit: "", label: "Blackwell GPUs (NVIDIA DGX GB200)" },
-    { value: "1.5", unit: "EF", label: "ExaFLOPS peak design compute" },
+    { value: "1.5", unit: "EF", label: "ExaFLOPS peak design compute, V-1F reference" },
+    { value: "144,000+", unit: "", label: "GPUs in the V-1F reference configuration" },
     { value: "80+", unit: "GB/s", label: "bandwidth per node, NVLink 5.0" },
     { value: "100+", unit: "EB", label: "storage capacity" },
   ],
@@ -177,7 +215,7 @@ export const HALL = {
     {
       key: "rack",
       title: "Rack, close up",
-      caption: "150 kW per rack. Liquid-cooled. Built for Blackwell.",
+      caption: "150 kW per rack. Liquid-cooled. Built for what comes next.",
     },
     {
       key: "command",
@@ -191,6 +229,21 @@ export const HALL = {
     },
   ],
   note: "Illustrative visualisations of the Xerxes design.",
+};
+
+export const SHELL = {
+  eyebrow: "04 — Compute · The shell",
+  title: "A roof that catches the wind",
+  titleAccent: "and keeps the cold.",
+  body: "The roof of every pod is a shell of nanocomposite, engineered with nanotechnology to capture wind and cold. What it gathers is transferred to the chillers, so the cooling plant begins each day ahead. The heat the racks give up is recovered and reused rather than vented.",
+  steps: [
+    { n: "01", t: "Capture", d: "A nanocomposite shell gathers wind and cold from the air around the campus.", tone: "cold" },
+    { n: "02", t: "Transfer", d: "That cooling potential is passed to the chillers instead of being generated from scratch.", tone: "cold" },
+    { n: "03", t: "Cool", d: "Closed-loop CO₂ cooling carries heat out of 150 kW racks. No water is evaporated.", tone: "cold" },
+    { n: "04", t: "Recover", d: "Rejected heat is captured and reused on the campus, not thrown away.", tone: "heat" },
+  ],
+  alt: "Roof of a Xerxes pod: a nanocomposite lattice shell gathering wind and cold at dawn",
+  note: "Illustrative visualisation. Shell performance figures are not yet published.",
 };
 
 export const GMS = {
@@ -253,7 +306,7 @@ export const IMPACT = {
   title: "Carbon negative.",
   titleAccent: "Water-free.",
   intro:
-    "A conventional AI campus draws on the grid and boils away water. Xerxes does neither. The comparison below is modelled for a facility of equal scale.",
+    "A conventional AI campus draws on the grid and boils away water. Xerxes does neither: closed-loop cooling, a roof that captures wind and cold, and heat that is recovered, not rejected. The comparison below is modelled for a facility of equal scale.",
   bars: [
     {
       label: "CO₂ per year",
@@ -338,7 +391,7 @@ export const COMPANY = {
       name: "Aiden Digital Labs",
       year: "2020",
       place: "London, UK",
-      role: "AI infrastructure and high-performance computing.",
+      role: "AI infrastructure and high-performance computing. Designers of the Dark Token Factory data center.",
     },
     {
       name: "Kaigen Technologies",
@@ -395,7 +448,7 @@ export const CONTACT = {
   intro:
     "Tell us about your compute, your site or your capital. A member of the team will reply personally.",
   interests: [
-    "DTF — compact model",
+    "DTF — Dark Token Factory",
     "Xerxes — hyperscale campus",
     "Partnership",
     "Investor",
@@ -426,6 +479,10 @@ export const MARQUEE = [
   "CARBON-NEGATIVE",
   "AI-OPTIMIZED",
   "GEOTHERMAL-EMBEDDED",
+  "12 WELLS",
+  "120 BRANCHES",
+  "5 KM DEEP",
+  "NANO-SHELL ROOF",
   "1.5 EXAFLOPS",
   "PUE 1.05",
   "ZERO WATER",
