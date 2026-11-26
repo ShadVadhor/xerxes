@@ -13,6 +13,7 @@ import Impact from "@/components/xerxes/Impact";
 import Manifesto from "@/components/xerxes/Manifesto";
 import Models from "@/components/xerxes/Models";
 import Nav from "@/components/xerxes/Nav";
+import PadSection from "@/components/xerxes/PadSection";
 import Preloader, { shouldPlayIntro } from "@/components/xerxes/Preloader";
 import Programme from "@/components/xerxes/Programme";
 import Sovereignty from "@/components/xerxes/Sovereignty";
@@ -100,6 +101,7 @@ export default function Home() {
         <Manifesto />
         <Models />
         <Descent />
+        <PadSection />
         <DataHall />
         <WalkTeaser />
         <Gms />

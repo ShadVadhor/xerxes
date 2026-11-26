@@ -553,6 +553,27 @@ export function buildEnergy(kit: Kit, g: THREE.Group, A: Anchor[], wells: THREE.
     g2.position.set(0, 4.0, 0);
     g2.rotation.x = Math.PI / 2;
     w.add(g2);
+    // the pad: a copper collar at the foot of the tree, a gold ring of ten slot caps in the deck (orange: production, blue: injection)
+    kit.cyl(0.78, 0.78, 0.5, kit.copper, 0, 0.62, 0, w, 24);
+    const padRing = new THREE.Mesh(new THREE.TorusGeometry(2.0, 0.09, 8, 48), kit.emit("#e9b949", 1.7));
+    kit.track(padRing.geometry);
+    padRing.rotation.x = Math.PI / 2;
+    padRing.position.y = 0.34;
+    w.add(padRing);
+    for (let i = 0; i < 10; i += 1) {
+      const a = (i / 10) * Math.PI * 2 - 1.2;
+      const production = ![1, 3, 6, 8].includes(i);
+      const cap = new THREE.Mesh(new THREE.SphereGeometry(0.17, 10, 8), kit.emit(production ? COL.magma : COL.led, 2.2));
+      kit.track(cap.geometry);
+      cap.position.set(Math.cos(a) * 2.0, 0.36, Math.sin(a) * 2.0);
+      w.add(cap);
+    }
+    // sensor mast for the motherbore probe, with a cyan beacon
+    kit.cyl(0.05, 0.05, 3.2, kit.steel, 2.9, 1.9, -1.6, w, 8);
+    const beacon = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 8), kit.emit(COL.cyan, 2.6));
+    kit.track(beacon.geometry);
+    beacon.position.set(2.9, 3.6, -1.6);
+    w.add(beacon);
     // fence posts
     for (let i = 0; i < 14; i += 1) {
       const a = (i / 14) * Math.PI * 2;
@@ -593,7 +614,7 @@ export function buildEnergy(kit: Kit, g: THREE.Group, A: Anchor[], wells: THREE.
     kit.flow(roundedPath([[sx * 12.6, 1.0, 236.8], [sx * 12.6, 1.0, 239.8], [x + sx * 1.8, 0.9, 239.8], [x + sx * 1.8, 0.9, z + 1]], 1.2), { color: COL.cyan, r: 0.24, spacing: 4, speed: 4, dir: 1, base: 0.4 });
     kit.flow(roundedPath([[sx * 11.2, 2.6, 232], [sx * 11.2, 2.6, 222], [sx * 27.5, 1.2, 222], [sx * 27.5, 1.2, 222.5]], 1.2), { color: COL.amber, r: 0.22, spacing: 6, speed: 8, dir: 1, base: 0.4 });
     kit.hcyl(0.3, 3.2, kit.std("#6b747f", 0.9, 0.3), sx * 15.5, 1.5, 230, "z", g);
-    const lab = kit.sign(sx < 0 ? "WELL A" : "WELL B", "#fff1dc", COL.magma, 5);
+    const lab = kit.sign(sx < 0 ? "WELL PAD A" : "WELL PAD B", "#fff1dc", COL.magma, 5);
     lab.position.set(x, 7.2, z);
     g.add(lab);
     anchor(A, x, 5.4, z - 3, COL.magma, 1.6);

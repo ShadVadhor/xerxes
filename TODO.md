@@ -34,3 +34,13 @@ Left rail = chapter / depth gauge. Smooth Lenis scrolling, GSAP ScrollTrigger, T
 - [x] Route head tags for `/walkthrough` set client-side and server-side (title, description, canonical, og, twitter); `manus-routes.json` lists the route.
 - [ ] Open questions for the owner: campus-total MW (white paper Phase 1 = 5 wells / 250 MW vs 12 wells), whether to gate parts of the walkthrough detail, DTF branch count (deck 10 vs site 4 to 10).
 - [ ] Publishing is the user's step (not published).
+## Round 4 (NeoTec deck + the well-pad design)
+Source: NeoTec "Xerxes with GE IOS DC Deployment" deck (Confidential) plus the user's two pad images (schematic and branch render). Spartan, Blackwell and Tier 5 material from the deck is deliberately NOT used; the patent number is not republished.
+- [x] One shared pad geometry (`lib/wellpad.ts`): wellhead, short colloidal conductor casing (~12% of depth), ring of ten slots (4 open, 6 sealed in reserve), 10 branches = 6 production + 4 injection that leave in a tight bundle and peel off like a fountain (outer branches stop ~63% down, inner ones run deepest ~93%), motherbore probe (acoustic / thermal / EM), AI 3D subsurface model, N2 nanofoam. Branches 4 -> 10, each deeper into hotter rock.
+- [x] Hero film v4: AI campus shot -> frame-rendered 3D cross-section of one well pad (4 -> 10 branches -> twelve pads) -> AI data hall; 5 HUD phases (surface / one well pad / four -> ten / 120 branches / compute); desktop 1280x720 and portrait 540x1080 files. Dev-only `/__film` route renders the frames deterministically; it is excluded from production builds.
+- [x] Descent (3D) redone to the pad design with 7 beats; strata palette (topsoil, orange sandstone, red-brown rock); fallback still replaced.
+- [x] New home section "The well pad" (`PadSection`, `id="well-pad"`) with the 2D schematic (`WellPadAnatomy`, desktop labels + mobile key); the DTF anatomy now uses the same schematic (variant "dtf": 20 MWe per well pad, re-entered well, same API, Building 1 + Phase 2).
+- [x] Models (DTF vs Xerxes) 3D campus: 12 Xerxes pads and the DTF pad drawn with the pad geometry (DTF: 4 solid + 6 ghost branches). New wellpad surface image.
+- [x] Walkthrough: stop 8 (pad: copper collar, gold ring with ten caps, probe mast, "WELL PAD A/B", 50-54 MW modelled) and stop 9 (twelve pads, 120 branches, casing / ring / production / probe hotspots).
+- [ ] Open questions for the owner: confirm the reading "10 branches = 6 production + 4 injection" and "4 -> 10 = open now, grow later"; the 20 MWe-per-pad figure is the DTF; Xerxes keeps 50-54 MW per well (deck 50, white paper 54); branch depths now vary (outer ~63%, inner ~93% of ~5 km).
+- [ ] Publishing is the user's step (not published).

@@ -38,12 +38,13 @@ export const CHAPTERS = [
   { id: "contact", n: "10", label: "Contact" },
 ];
 
-/** Hero HUD phases keyed to the loop film (seconds into the 19s loop) */
+/** Hero HUD phases keyed to the loop film (seconds into the 22.25 s loop) */
 export const HERO_PHASES = [
-  { from: 0, to: 6.2, tag: "01 / SURFACE", line: "A campus that asks nothing of the grid." },
-  { from: 6.2, to: 13.8, tag: "02 / TWELVE WELLS", line: "A hub and six pods over twelve wells: two under every pod, fifty metres apart." },
-  { from: 13.8, to: 18.2, tag: "03 / 120 BRANCHES", line: "Ten directional branches a well, one hundred and twenty in all, five kilometres down." },
-  { from: 18.2, to: 22.2, tag: "04 / COMPUTE", line: "Heat becomes intelligence." },
+  { from: 0, to: 6.0, tag: "01 / SURFACE", line: "A campus that asks nothing of the grid." },
+  { from: 6.0, to: 10.0, tag: "02 / ONE WELL PAD", line: "Every well is a pad: one wellhead, a short copper casing and a ring of ten slots." },
+  { from: 10.0, to: 14.2, tag: "03 / FOUR → TEN", line: "Four branches open on day one. Six more grow in, each deeper into hotter rock." },
+  { from: 14.2, to: 19.0, tag: "04 / 120 BRANCHES", line: "Twelve pads, fifty metres apart, ten branches each: one hundred and twenty, about five kilometres down." },
+  { from: 19.0, to: 22.25, tag: "05 / COMPUTE", line: "Heat becomes intelligence." },
 ];
 
 export const HERO_TELEMETRY = [
@@ -157,28 +158,28 @@ export const MODELS = {
     note: "Design targets, to be verified in the pilot. 10-branch wellpad basis: 140 MWth → 20.0 MWe gross → 19.2 MWe net → 18.7 MW-IT; dynamically scalable 2–20 MWe. Not every well qualifies: candidates are screened for heat, integrity and access.",
   },
   spine: {
-    eyebrow: "The heat engine",
-    title: "Ten slots.",
-    titleAccent: "One stationary pad.",
+    eyebrow: "The well pad",
+    title: "Four branches today.",
+    titleAccent: "Ten when it grows.",
     intro:
-      "A verified idle well becomes a power spine: a ten-slot colloidal conductor neck, a slim 3-inch central sensor core, and ten branches sidetracked from pre-milled whipstock slots, each running to about 4.5 km into 150–200 °C rock. Branch 1 is drilled first. The rest follow without moving the pad.",
+      "A verified idle well is re-entered on the same API and becomes the pad: a short colloidal conductor casing, a ring of ten slots with six sealed in reserve, and a motherbore probe that listens to the rock. Branches fan out in a fountain, each new one deeper into hotter rock.",
     steps: [
-      { n: "01", tag: "Re-enter", title: "Ten-slot neck and a 3-inch sensor core", body: "0–500 m carries six slots, 500–1,000 m four. The intact central well keeps continuous fibre-optic and pressure sensing." },
-      { n: "02", tag: "Capture", title: "Helix “DNA” geocasing", body: "Whipstock sidetracks reach 4.5 km. Molded chambers carrying graphene and borophene nanoparticles drive heat into the sealed loop." },
-      { n: "03", tag: "Stimulate and stabilise", title: "N₂ nanofoam and NanoVault", body: "Nanofoam opens high-surface-area thermal pathways; the surface NanoVault and BESS buffer steady the heat for the ORC and the chillers." },
-      { n: "04", tag: "Convert and scale", title: "Native ORC-DC, no rig move", body: "Ten branches of 14.0 MWth each feed a low-boiling nanofluid ORC. Output scales from 2 to 20 MWe as branches come online." },
+      { n: "01", tag: "Re-enter", title: "Same API, short casing", body: "The existing wellbore is re-entered, not redrilled. A colloidal conductor casing reaches about an eighth of the way down; a ring of ten slots sits at its foot, six of them sealed in reserve." },
+      { n: "02", tag: "Listen", title: "Motherbore probe: acoustic, thermal, EM", body: "A central probe runs the full depth and feeds an AI 3D subsurface model, so each new branch is steered toward the hottest rock." },
+      { n: "03", tag: "Grow", title: "Four branches, then ten", body: "The pad opens with four. When the heat is needed, the reserve slots open one by one and each new branch peels off in a smooth curve. N₂ nanofoam, timed by the AI, opens the heat pathways." },
+      { n: "04", tag: "Convert and scale", title: "Native ORC-DC, no rig move", body: "Ten branches of 14.0 MWth each feed a low-boiling nanofluid ORC. Output scales from 2 to 20 MWe as branches come online: Building 1 first, Phase 2 after." },
     ],
     figures: [
-      { value: "80–200", unit: "°C", label: "operating window" },
-      { value: "4.5", unit: "km", label: "branch depth, 3″ sensor core" },
-      { value: "10", unit: "", label: "slots, pre-milled on one pad" },
+      { value: "20", unit: "MWe", label: "gross per well pad" },
+      { value: "4 → 10", unit: "", label: "branches per pad" },
+      { value: "4.5", unit: "km", label: "deepest branches · 150–200 °C rock" },
     ],
   },
   specs: [
     { k: "Form", dtf: "One prefabricated two-level building on a stationary pad: compute above, power and cooling below", xerxes: "Central hub + 6 compute pods under a nano-shell roof" },
     { k: "Wells", dtf: "1 re-entered idle oil & gas well", xerxes: "12 wells · 2 under each pod · 50 m apart" },
-    { k: "Branches", dtf: "10 pre-milled whipstock slots · 10 branches around a 3-inch central sensor core, drilled one by one", xerxes: "10 directional branches per well · 120 in total" },
-    { k: "Depth", dtf: "Up to 4.5 km per branch, into 150–200 °C rock", xerxes: "About 5 km on every branch" },
+    { k: "Branches", dtf: "One well pad: a ring of 10 slots · 4 branches open, 6 reserve slots sealed until the pad grows to 10, each deeper into hotter rock", xerxes: "10 directional branches per well pad (6 production + 4 injection) · 120 in total" },
+    { k: "Depth", dtf: "Up to 4.5 km on the deepest branches, into 150–200 °C rock", xerxes: "About 5 km on the deepest branches; the outer ones flare wide and stop shallower" },
     { k: "Power", dtf: "20.0 MWe gross Native ORC-DC · 19.2 MWe net · scalable 2–20 MWe", xerxes: "Up to 50 MW per well · 54 MWe net modelled" },
     { k: "Compute", dtf: "About 18.7 MW of IT per pad at full build", xerxes: "Up to 1.5 ExaFLOPS reference design · 150 kW per rack" },
     { k: "Silicon", dtf: "Three classes: DTF-Nx (NVIDIA H100/H200), DTF-A (AMD Instinct MI350X), DTF-N (NVIDIA B200/B300)", xerxes: "NVIDIA Vera Rubin, next-gen AMD Instinct GPUs, advanced TPUs, NPUs and new high-density chips" },
@@ -204,12 +205,12 @@ export const MODELS = {
 export const DESCENT = {
   eyebrow: "03 — The technology",
   title: "Power from below.",
-  /** Order matches the scene beats: surface · spacing · depth · branches · field · to compute */
+  /** Order matches the scene beats: surface · spacing · the pad · four to ten · five km · whole field · to compute */
   steps: [
     {
       tag: "Surface",
       title: "A campus that asks nothing of the grid.",
-      body: "Above ground: a hub and six white pods under a nano-shell roof. Below them: twelve wells, two under every pod, and the power station they feed.",
+      body: "Above ground: a hub and six white pods under a nano-shell roof. Below them: twelve well pads, two under every pod, and the power station they feed.",
       stat: null,
     },
     {
@@ -219,21 +220,27 @@ export const DESCENT = {
       stat: { value: "50", unit: "m", label: "between wells" },
     },
     {
-      tag: "Nanomaterial pipes",
-      title: "Five kilometres down.",
-      body: "Down each closed-loop shaft, nanomaterial-enhanced pipework lifts heat transfer by 56% over conventional casing, pulling more usable energy from every metre of rock on the way to the reservoir.",
-      stat: { value: "5", unit: "km", label: "deep, every branch" },
+      tag: "One well pad",
+      title: "One wellhead. Ten slots.",
+      body: "Every pad is a single wellhead over a colloidal conductor casing that reaches only about an eighth of the way down. At its foot sits a ring of ten reserve slots, sealed until each is needed, and a motherbore probe runs down the middle listening to the rock.",
+      stat: { value: "10", unit: "", label: "slots on every pad" },
     },
     {
-      tag: "Enhanced Quantum Geothermal",
-      title: "Ten branches. Every well.",
-      body: "At depth each well fans into ten directional branches, sidetracked into hotter rock and sealed in one closed loop. Production carries heat up; injection carries fluid back down. Nothing leaves the loop. Nothing is burned.",
-      stat: { value: "10", unit: "", label: "directional branches per well" },
+      tag: "Four to ten",
+      title: "Four branches. Then ten.",
+      body: "A pad opens with four active branches. When it is time to grow, the reserve slots open one by one and each new branch peels off in a smooth curve, deeper into hotter rock. AI-timed nitrogen nanofoam opens the heat pathways in the new rock.",
+      stat: { value: "4 → 10", unit: "", label: "branches per pad" },
+    },
+    {
+      tag: "Five kilometres",
+      title: "Deeper into hotter rock.",
+      body: "The outer branches flare wide and stop shallower; the inner ones stay close to the axis and run deepest, about five kilometres down. Nanomaterial-enhanced pipe lifts heat transfer by 56%; six branches produce heat while four return the cooled fluid in one closed loop.",
+      stat: { value: "5", unit: "km", label: "to the deepest branches" },
     },
     {
       tag: "The whole field",
-      title: "Twelve wells. 120 branches.",
-      body: "Pull the rock away and the field appears: a root system of 120 branches beneath six pods, each branch reaching about five kilometres down, each well fifty metres from its neighbour. This is what a Goliath stands on.",
+      title: "Twelve pads. 120 branches.",
+      body: "Pull the rock away and the field appears: twelve fountains of ten branches beneath six pods, each pad fifty metres from its neighbour. Each pad is modelled at up to fifty megawatts. This is what a Goliath stands on.",
       stat: { value: "120", unit: "", label: "branches · 12 wells" },
     },
     {
@@ -243,9 +250,8 @@ export const DESCENT = {
       stat: { value: "54", unit: "MWe", label: "net per well, modelled" },
     },
   ],
-  footnote: "Schematic — not to scale. Geometry per Xerxes design intent; power figures modelled (AI GMS Phase 0, White Paper V-1F).",
+  footnote: "Schematic — not to scale. Pad geometry per Xerxes design intent; power figures modelled (AI GMS Phase 0, White Paper V-1F).",
 };
-
 export const HALL = {
   eyebrow: "04 — Compute",
   title: "The densest racks on earth,",
@@ -299,7 +305,7 @@ export const HALL = {
     {
       key: "wellpad",
       title: "The wellpad",
-      caption: "Where the closed loop meets the surface. Compact, quiet, sealed.",
+      caption: "One wellhead, one pad: where the closed loop meets the surface. Compact, quiet, sealed.",
     },
   ],
   note: "Illustrative visualisations of the Xerxes design.",
@@ -562,3 +568,24 @@ export const MARQUEE = [
   "ZERO WATER",
   "150 kW / RACK",
 ];
+
+/** The well pad, as a stand-alone chapter after the descent (Xerxes variant of the diagram). */
+export const PAD_SECTION = {
+  eyebrow: "03 — The technology · The well pad",
+  title: "One wellhead.",
+  titleAccent: "Ten branches.",
+  intro:
+    "Every Xerxes well is a pad of its own: a short copper casing, a ring of ten slots, and a fountain of branches that peel off into hotter rock, six producing and four injecting in one closed loop. Switch the pad between four and ten branches and watch it grow.",
+  parts: [
+    { k: "Colloidal conductor casing", v: "Short and copper: it only has to reach the ring, about an eighth of the way down." },
+    { k: "Ten reserve slots", v: "Four open at first. Six stay sealed until the pad grows, then open one by one." },
+    { k: "Motherbore probe", v: "Acoustic, thermal and EM sensing feeds an AI 3D subsurface model of the rock." },
+    { k: "N₂ nanofoam, AI-timed", v: "Opens the heat pathways around each branch, timed by that model." },
+  ],
+  figures: [
+    { value: "50", unit: "MW", label: "per well, modelled" },
+    { value: "8", unit: "%", label: "parasitic load" },
+    { value: "56", unit: "%", label: "better heat transfer" },
+  ],
+  footnote: "Schematic, not to scale. Branch depths are fractions of total depth. 50 MW per well is a modelled design value, not audited operating data.",
+};

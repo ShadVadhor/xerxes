@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
+import { PAD, PAD_BRANCHES, branchProfile } from "@/lib/wellpad";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
@@ -431,23 +432,6 @@ function makeHalo(branches: Branch[], radius: number, opacity: number) {
   return mesh;
 }
 
-/** A sidetrack leaving a well's kick-off point: drops, then runs out nearly level into hot rock. */
-function branchCurve(origin: THREE.Vector3, azimuth: number, reach: number, drop: number) {
-  const p = (r: number, dy: number, bend = 0) =>
-    new THREE.Vector3(
-      origin.x + Math.cos(azimuth + bend) * r,
-      origin.y - dy,
-      origin.z + Math.sin(azimuth + bend) * r
-    );
-  return new THREE.CatmullRomCurve3([
-    p(0, 0),
-    p(reach * 0.14, drop * 0.34, 0.02),
-    p(reach * 0.42, drop * 0.8, 0.07),
-    p(reach * 0.76, drop * 1.0, 0.1),
-    p(reach, drop * 1.05, 0.12),
-  ]);
-}
-
 function glowMaterial(color: string, opacity = 0.7) {
   return new THREE.MeshBasicMaterial({
     color,
@@ -459,17 +443,93 @@ function glowMaterial(color: string, opacity = 0.7) {
   });
 }
 
+/**
+ * The client's well pad, drawn underground: a short copper conductor casing, a ring of ten slots at its foot,
+ * a fountain of ten branches that peel off the bundle (outer ones flare wide and stop shallower, inner ones run
+ * deepest), a motherbore probe down the middle and a teal hot zone at the bottom.
+ * `ghostReserve` shows the six reserve slots as sealed gold caps with dashed "planned" branches (4 → 10).
+ */
+function makePadUnder(
+  wells: THREE.Vector3[],
+  o: { depth: number; reach: number; casingR: number; tube: number; ghostReserve: boolean },
+) {
+  const group = new THREE.Group();
+  const branches: Branch[] = [];
+  const kick = -o.depth * PAD.casing;
+  const ringR = o.casingR * 2.1;
+  const gold = new THREE.Color("#e9b949");
+  const hot = new THREE.Color("#ff5a1f");
+  const cold = new THREE.Color("#3d8bff");
+
+  const casing = new THREE.InstancedMesh(new THREE.CylinderGeometry(o.casingR, o.casingR, -kick, 18, 1, true), glowMaterial("#c8773a", 0.6), wells.length);
+  const collars = new THREE.InstancedMesh(new THREE.TorusGeometry(o.casingR * 1.1, o.casingR * 0.13, 6, 20), glowMaterial("#e0904a", 0.9), wells.length * 4);
+  const ring = new THREE.InstancedMesh(new THREE.TorusGeometry(ringR, o.casingR * 0.14, 6, 36), glowMaterial("#e9b949", 0.85), wells.length);
+  const caps = new THREE.InstancedMesh(new THREE.SphereGeometry(o.casingR * 0.34, 10, 8), new THREE.MeshBasicMaterial({ toneMapped: false }), wells.length * PAD.branches);
+  const probeY = -o.depth * 0.955;
+  const probe = new THREE.InstancedMesh(new THREE.CylinderGeometry(o.casingR * 0.1, o.casingR * 0.1, probeY - kick, 8, 1, true), glowMaterial("#46e3ff", 0.75), wells.length);
+  const probeNode = new THREE.InstancedMesh(new THREE.SphereGeometry(o.casingR * 0.5, 14, 10), glowMaterial("#c8f6ff", 0.95), wells.length);
+  const hotRings = new THREE.InstancedMesh(
+    new THREE.TorusGeometry(1, 0.006, 6, 64),
+    new THREE.MeshBasicMaterial({ color: "#2fd0c0", transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }),
+    wells.length * 3,
+  );
+  const t = new THREE.Object3D();
+  const set = (mesh: THREE.InstancedMesh, i: number, x: number, y: number, z: number, rx = 0, sx = 1, sy = 1, sz = 1) => {
+    t.position.set(x, y, z);
+    t.rotation.set(rx, 0, 0);
+    t.scale.set(sx, sy, sz);
+    t.updateMatrix();
+    mesh.setMatrixAt(i, t.matrix);
+  };
+
+  wells.forEach((well, wi) => {
+    set(casing, wi, well.x, kick / 2, well.z);
+    for (let c = 0; c < 4; c += 1) set(collars, wi * 4 + c, well.x, kick * (0.1 + c * 0.27), well.z, Math.PI / 2);
+    set(ring, wi, well.x, kick, well.z, Math.PI / 2);
+    set(probe, wi, well.x, (kick + probeY) / 2, well.z);
+    set(probeNode, wi, well.x, probeY, well.z);
+    [0.9, 1.7, 2.7].forEach((k, r) => set(hotRings, wi * 3 + r, well.x, probeY + 0.03, well.z, Math.PI / 2, o.reach * k * 0.5, o.reach * k * 0.5, 1));
+
+    PAD_BRANCHES.forEach(b => {
+      const open = !o.ghostReserve || b.initial;
+      const tipY = -o.depth * b.tip;
+      const pts = branchProfile(b, 22).map(([u, s]) => {
+        const lateral = ringR * 0.9 + u * b.reach * o.reach;
+        return new THREE.Vector3(well.x + Math.cos(b.az) * lateral, kick + s * (tipY - kick), well.z + Math.sin(b.az) * lateral);
+      });
+      branches.push({
+        curve: new THREE.CatmullRomCurve3(pts, false, "centripetal"),
+        dir: b.role === "production" ? -1 : 1,
+        phase: ((wi * 10 + b.rank) * 0.6180339) % 1,
+        ghost: !open,
+      });
+      const slot = new THREE.Vector3(well.x + Math.cos(b.az) * ringR, kick, well.z + Math.sin(b.az) * ringR);
+      set(caps, wi * PAD.branches + b.rank, slot.x, slot.y, slot.z);
+      caps.setColorAt(wi * PAD.branches + b.rank, open ? (b.role === "production" ? hot : cold) : gold);
+    });
+  });
+  [casing, collars, ring, caps, probe, probeNode, hotRings].forEach(mesh => {
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.frustumCulled = false;
+  });
+  if (caps.instanceColor) caps.instanceColor.needsUpdate = true;
+
+  const material = makeFlowMaterial("#ff5a1f", "#3d8bff", 1);
+  const flow = new THREE.Mesh(mergeTubes(branches, o.tube, 56, 5), material);
+  flow.frustumCulled = false;
+  group.add(flow, makeHalo(branches.filter(b => !b.ghost), o.tube * 2.3, 0.07), casing, collars, ring, caps, probe, probeNode, hotRings);
+  return { group, material };
+}
+
 /* ---------------------------------------------------------------------------------------------
  * Xerxes: hub + six pods, two wells under every pod, ten branches per well = 120.
  * ------------------------------------------------------------------------------------------- */
 
 const POD_RADIUS = 4.45;
 const WELL_SPAN = 0.95; // half the distance between a pod's two wells (pre-scale units)
-const XERXES_KICKOFF = 1.5;
 
 function makeXerxesField() {
   const group = new THREE.Group();
-  const branches: Branch[] = [];
   const wells: THREE.Vector3[] = [];
   const dimension: { a: THREE.Vector3; b: THREE.Vector3 } = { a: new THREE.Vector3(), b: new THREE.Vector3() };
 
@@ -478,47 +538,19 @@ function makeXerxesField() {
     for (const side of [-1, 1]) {
       const radial = POD_RADIUS + side * WELL_SPAN;
       const well = new THREE.Vector3(Math.cos(angle) * radial, 0, Math.sin(angle) * radial);
-      const index = wells.length;
       wells.push(well);
       if (pod === 1) (side < 0 ? dimension.a : dimension.b).copy(well);
-      const origin = new THREE.Vector3(well.x, -XERXES_KICKOFF, well.z);
-      for (let k = 0; k < 10; k += 1) {
-        const azimuth = (k / 10) * Math.PI * 2 + index * 0.41;
-        const reach = 1.15 + ((k * 7 + index * 3) % 5) * 0.16;
-        const drop = 0.7 + ((k * 3 + index) % 4) * 0.2;
-        branches.push({
-          curve: branchCurve(origin, azimuth, reach, drop),
-          dir: k % 2 === 0 ? -1 : 1,
-          phase: ((index * 10 + k) * 0.6180339) % 1,
-        });
-      }
     }
   }
 
-  const material = makeFlowMaterial("#ff5a1f", "#3d8bff", 1);
-  const flow = new THREE.Mesh(mergeTubes(branches, 0.023, 40, 5), material);
-  flow.frustumCulled = false;
-  group.add(flow, makeHalo(branches, 0.055, 0.06));
-
-  // Twelve shafts and their kick-off nodes.
-  const shaft = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.036, 0.036, XERXES_KICKOFF, 10, 1, true), glowMaterial("#ff9055", 0.62), wells.length);
-  const node = new THREE.InstancedMesh(new THREE.SphereGeometry(0.075, 14, 10), glowMaterial("#ffd3ae", 0.95), wells.length);
-  const t = new THREE.Object3D();
-  wells.forEach((w, i) => {
-    t.position.set(w.x, -XERXES_KICKOFF / 2, w.z);
-    t.updateMatrix();
-    shaft.setMatrixAt(i, t.matrix);
-    t.position.set(w.x, -XERXES_KICKOFF, w.z);
-    t.updateMatrix();
-    node.setMatrixAt(i, t.matrix);
-  });
-  shaft.instanceMatrix.needsUpdate = true;
-  node.instanceMatrix.needsUpdate = true;
-  group.add(shaft, node);
+  // Twelve well pads, each with its casing, ring of ten slots, ten fountain branches and motherbore probe.
+  const under = makePadUnder(wells, { depth: 3.7, reach: 1.9, casingR: 0.05, tube: 0.021, ghostReserve: false });
+  const material = under.material;
+  group.add(under.group);
 
   // "50 m" dimension between the two wells of the featured pod.
   const dim = new THREE.Group();
-  const y = -0.62;
+  const y = -0.2;
   const a = new THREE.Vector3(dimension.a.x, y, dimension.a.z);
   const b = new THREE.Vector3(dimension.b.x, y, dimension.b.z);
   const along = b.clone().sub(a).normalize();
@@ -598,11 +630,9 @@ function buildXerxes(): Campus {
 /* ---------------------------------------------------------------------------------------------
  * DTF — Dark Token Factory: one stationary pad, one prefabricated two-level building (Level 2
  * compute under a robotic gantry, Level 1 power / cooling / stimulation), a green steel wellhead,
- * and one re-entered well: a ten-slot neck with ten branches around a 3-inch sensor core.
+ * and one re-entered well: a ring of ten slots, ten branches (six production, four injection) and a motherbore probe down the middle.
  * ------------------------------------------------------------------------------------------- */
 
-const DTF_NECK = 1.15;
-const DTF_CORE_END = 2.05;
 const PAD_TOP = 0.07;
 
 function makeDtf(): Campus {
@@ -736,32 +766,12 @@ function makeDtf(): Campus {
     add(pad, new THREE.BoxGeometry(0.06, 0.02, 0.06), glow("#ff7a3a"), x, PAD_TOP + 0.35, hz);
   });
 
-  // Underground: one re-entered well. A ten-slot neck (six slots in the upper half, four in the lower),
-  // ten branches sidetracked from those slots, and the 3-inch sensor core running on below them all.
-  const under = new THREE.Group();
-  const slotY = Array.from({ length: 10 }, (_, k) => (k < 6 ? -(0.1 + k * 0.095) : -(0.7 + (k - 6) * 0.12)));
-  const branches: Branch[] = [];
-  for (let k = 0; k < 10; k += 1) {
-    const origin = new THREE.Vector3(wx, slotY[k], wz);
-    const endDepth = 1.78 + (k % 4) * 0.09;
-    branches.push({
-      curve: branchCurve(origin, (k / 10) * Math.PI * 2 + 0.3, 1.2 + (k % 3) * 0.13, (endDepth + slotY[k]) / 1.05),
-      dir: k % 2 === 0 ? -1 : 1,
-      phase: (k * 0.6180339) % 1,
-    });
-  }
-  const material = makeFlowMaterial("#ff5a1f", "#3d8bff", 1);
-  const flow = new THREE.Mesh(mergeTubes(branches, 0.03, 56, 6), material);
-  flow.frustumCulled = false;
-  under.add(flow, makeHalo(branches, 0.07, 0.09));
-  // the neck: a darker sleeve with ten amber slot ports
-  add(under, new THREE.CylinderGeometry(0.075, 0.075, DTF_NECK, 16, 1, true), glowMaterial("#7a4a2a", 0.4), wx, -DTF_NECK / 2, wz);
-  slotY.forEach((y, k) => add(under, new THREE.BoxGeometry(0.05, 0.026, 0.05), glow("#ffc27a"), wx + (k % 2 === 0 ? -0.075 : 0.075), y, wz));
-  // the central sensor core
-  add(under, new THREE.CylinderGeometry(0.03, 0.03, DTF_CORE_END, 10, 1, true), glowMaterial("#ffd9bd", 0.85), wx, -DTF_CORE_END / 2, wz);
-  add(under, new THREE.SphereGeometry(0.085, 16, 12), glowMaterial("#fff1e0", 0.95), wx, -DTF_CORE_END, wz);
-  add(under, new THREE.SphereGeometry(0.2, 16, 12), glowMaterial("#ff7a3a", 0.16), wx, -DTF_CORE_END, wz);
-  content.add(under);
+  // Underground: one re-entered well on the same API. Four branches are open; six reserve slots stay sealed
+  // (gold caps, dashed "planned" branches) until the pad grows from 4 to 10, each one deeper into hotter rock.
+  const dtfWell = new THREE.Vector3(wx, 0, wz);
+  const under = makePadUnder([dtfWell], { depth: 3.1, reach: 1.45, casingR: 0.058, tube: 0.026, ghostReserve: true });
+  const material = under.material;
+  content.add(under.group);
 
   return { group, flows: [material] };
 }
@@ -772,8 +782,8 @@ function layoutFor(mode: Mode): Layout {
     dtfPosition: new THREE.Vector3(mode === "compare" ? -6.1 : 0, 0, 0),
     xerxesVisibility: mode === "dtf" ? HIDDEN_SCALE : 1,
     dtfVisibility: mode === "xerxes" ? HIDDEN_SCALE : 1,
-    target: new THREE.Vector3(mode === "compare" ? -0.1 : 0, mode === "dtf" ? -0.5 : -0.75, 0),
-    distance: mode === "dtf" ? 7.8 : mode === "compare" ? 22.5 : 15.8,
+    target: new THREE.Vector3(mode === "compare" ? -0.1 : 0, mode === "dtf" ? -0.8 : -1.3, 0),
+    distance: mode === "dtf" ? 8.4 : mode === "compare" ? 24 : 17.5,
   };
 }
 
@@ -923,7 +933,7 @@ export default function CampusScene(props: {
       const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
       let reducedMotion = motionPreference.matches;
       const camera = new THREE.PerspectiveCamera(42, 1, 0.05, 150);
-      const initialDirection = new THREE.Vector3(0.24, 0.57, 0.79).normalize();
+      const initialDirection = new THREE.Vector3(0.3, 0.27, 0.9).normalize();
       camera.position.copy(current.target).addScaledVector(initialDirection, current.distance);
       controls = new OrbitControls(camera, canvas);
       const orbit = controls;

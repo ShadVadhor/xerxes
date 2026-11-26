@@ -524,3 +524,27 @@ html.lenis body {
 .hs-card { position: absolute; top: calc(100% + 0.9rem); left: 50%; width: 13.5rem; transform: translateX(-50%); }
 [data-hs][data-side="l"] .hs-card { left: auto; right: -0.6rem; transform: none; }
 [data-hs][data-side="r"] .hs-card { left: -0.6rem; transform: none; }
+
+/* ── Well-pad anatomy diagram ── */
+@keyframes wp-bead { to { stroke-dashoffset: 22; } }
+@keyframes wp-bead-rev { to { stroke-dashoffset: -22; } }
+@keyframes wp-up { to { stroke-dashoffset: 12; } }
+@keyframes wp-down { to { stroke-dashoffset: -12; } }
+@keyframes wp-twinkle { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
+@keyframes wp-ping { 0% { transform: scale(1); opacity: 0.9; } 100% { transform: scale(2.6); opacity: 0; } }
+@keyframes wp-wave { to { transform: translateX(-30px); } }
+.wp-bead { stroke-dasharray: 0.1 22; animation: wp-bead 2.6s linear infinite; }
+.wp-bead-rev { animation-name: wp-bead-rev; }
+.wp-flow-up { stroke-dasharray: 3 9; animation: wp-up 1.1s linear infinite; }
+.wp-flow-down { stroke-dasharray: 3 9; animation: wp-down 1.1s linear infinite; }
+.wp-twinkle { animation: wp-twinkle 2.4s ease-in-out infinite; transition: opacity 0.6s; }
+.wp-ping { animation: wp-ping 2.4s ease-out infinite; }
+.wp-wave { animation: wp-wave 1.6s linear infinite; }
+.wp-dash { animation: flow-dash 2.6s linear infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .wp-bead, .wp-flow-up, .wp-flow-down, .wp-twinkle, .wp-ping, .wp-wave, .wp-dash { animation: none; }
+}
+
+@media (max-width: 639px) {
+  .wp-lbl { display: none; }
+}

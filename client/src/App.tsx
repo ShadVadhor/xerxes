@@ -8,6 +8,8 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 
 const Walkthrough = lazy(() => import("./pages/Walkthrough"));
+// development-only: deterministic renderer used to produce the hero film frames
+const FilmRig = import.meta.env.DEV ? lazy(() => import("./pages/FilmRig")) : null;
 
 // NOTE: About pages
 // - When the app has many pages, lazy-load them instead of importing each one above:
@@ -22,6 +24,7 @@ function Router() {
       <Switch>
         <Route path={"/"} component={Home} />
         <Route path={"/walkthrough"} component={Walkthrough} />
+        {FilmRig && <Route path={"/__film"} component={FilmRig} />}
         <Route path={"/404"} component={NotFound} />
         {/* Final fallback route */}
         <Route component={NotFound} />

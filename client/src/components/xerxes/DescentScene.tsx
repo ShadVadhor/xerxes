@@ -6,6 +6,7 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
+import { PAD, PAD_BRANCHES, branchProfile } from "@/lib/wellpad";
 
 type DescentSceneProps = {
   progressRef: React.MutableRefObject<number>;
@@ -17,12 +18,19 @@ type Glow = THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
 
 const ORANGE = "#ff5a1f";
 const BLUE = "#3d8bff";
+const COPPER = "#c8773a";
+const GOLD = "#e9b949";
+const PROBE = "#46e3ff";
+const TEAL = "#2fd0c0";
+/** Total depth of the schematic (the 5 km of the brief) and the well-pad anatomy measured down from the surface. */
+const TD_Y = -34;
 const RESERVOIR_Y = -32.5;
+const KICK_Y = TD_Y * PAD.casing; // conductor casing ends here; the ring of reserve slots sits at its foot
+const REACH = 6.0; // widest lateral reach of a branch, in scene units (exaggerated)
+const Z_FLAT = 0.4; // fans are flattened toward the open face of the cutaway so they read like the cross-section
 /** Schematic geometry: six pods around a hub, two wells under each pod, ten directional branches per well. */
 const POD_RADIUS = 6;
 const WELL_OFFSET = 1.15; // half of the (exaggerated) 50 m spacing
-const KICKOFF_Y = RESERVOIR_Y + 2.4;
-const BRANCH_PRODUCTION = [true, true, false, true, true, false, true, true, false, false];
 /** Pod 1 sits at +z, at the centre of the open cutaway, so its two wells are the ones the camera dives beside. */
 const FEATURED_POD = 1;
 
@@ -64,6 +72,20 @@ const noiseGLSL = /* glsl */ `
   }
 `;
 
+/** Geology after the render in the brief: dark topsoil, an orange sandstone band, then reddish-brown rock that darkens with depth. */
+const STRATA: [string, string][] = [
+  ["#1f160f", "#33241a"], // topsoil
+  ["#3a2417", "#5a3820"],
+  ["#6a3618", "#97582a"], // sandstone
+  ["#5f3216", "#8a4f25"],
+  ["#4a281b", "#6e3c27"], // reddish-brown rock
+  ["#45261b", "#673827"],
+  ["#3d231b", "#5d3326"],
+  ["#36201a", "#552f25"],
+  ["#2f1b17", "#4a2922"],
+  ["#2a1815", "#42241f"],
+];
+
 /** World-space noise keeps the horizontal and exposed cutaway faces coherent; uDissolve burns the rock away. */
 function makeStrataMaterial(index: number) {
   return new THREE.ShaderMaterial({
@@ -72,8 +94,8 @@ function makeStrataMaterial(index: number) {
       uIndex: { value: index },
       uHeat: { value: 0.3 },
       uDissolve: { value: 0 },
-      uDark: { value: new THREE.Color(index % 2 ? "#1a1613" : "#1b1b1e") },
-      uLight: { value: new THREE.Color(index % 2 ? "#2b221c" : "#29282b") },
+      uDark: { value: new THREE.Color(STRATA[Math.min(index, STRATA.length - 1)][0]) },
+      uLight: { value: new THREE.Color(STRATA[Math.min(index, STRATA.length - 1)][1]) },
       uWarm: { value: new THREE.Color(ORANGE) },
     },
     fog: true,
@@ -130,7 +152,7 @@ function makeStrataMaterial(index: number) {
   });
 }
 
-type FlowCurve = { curve: THREE.Curve<THREE.Vector3>; seed: number };
+type FlowCurve = { curve: THREE.Curve<THREE.Vector3>; seed: number; order?: number };
 
 /**
  * Many tubes merged into one draw call. Tube UV.x follows each curve, so signed speed sets the fluid
@@ -143,11 +165,13 @@ function makeFlowMesh(
   radius: number,
   pulseCount: number,
   tubular: number,
+  look: { sharp?: number; base?: number } = {},
 ): FlowTube {
-  const parts = curves.map(({ curve, seed }) => {
+  const parts = curves.map(({ curve, seed, order }) => {
     const geometry = new THREE.TubeGeometry(curve, tubular, radius, 6, false);
     const count = geometry.getAttribute("position").count;
     geometry.setAttribute("aSeed", new THREE.BufferAttribute(new Float32Array(count).fill(seed), 1));
+    geometry.setAttribute("aOrder", new THREE.BufferAttribute(new Float32Array(count).fill(order ?? -1), 1));
     return geometry;
   });
   const geometry = mergeGeometries(parts, false);
@@ -160,6 +184,9 @@ function makeFlowMesh(
       uSpeed: { value: speed },
       uEnergy: { value: 0.75 },
       uPulseCount: { value: pulseCount },
+      uGrow: { value: 1 },
+      uSharp: { value: look.sharp ?? 360 },
+      uBase: { value: look.base ?? 0.2 },
     },
     transparent: true,
     depthWrite: false,
@@ -167,6 +194,8 @@ function makeFlowMesh(
     fog: true,
     vertexShader: /* glsl */ `
       attribute float aSeed;
+      attribute float aOrder;
+      varying float vOrder;
       varying vec2 vUv;
       varying float vSeed;
       varying vec3 vNormal;
@@ -175,6 +204,7 @@ function makeFlowMesh(
       void main() {
         vUv = uv;
         vSeed = aSeed;
+        vOrder = aOrder;
         vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
         vNormal = normalize(normalMatrix * normal);
         vView = normalize(-mvPosition.xyz);
@@ -187,20 +217,27 @@ function makeFlowMesh(
       uniform float uSpeed;
       uniform float uEnergy;
       uniform float uPulseCount;
+      uniform float uGrow;
+      uniform float uSharp;
+      uniform float uBase;
       uniform vec3 uColor;
+      varying float vOrder;
       varying vec2 vUv;
       varying float vSeed;
       varying vec3 vNormal;
       varying vec3 vView;
       #include <fog_pars_fragment>
       void main() {
+        // reserve slots open one after another: the branch grows out of its slot, tip last
+        float grown = clamp((uGrow - vOrder * 0.75) / 0.25, 0.0, 1.0);
+        if (vUv.x > grown) discard;
         float phase = fract(vUv.x * uPulseCount - uTime * uSpeed + vSeed);
         float distanceToPulse = min(phase, 1.0 - phase);
-        float pulse = exp(-distanceToPulse * distanceToPulse * 360.0);
+        float pulse = exp(-distanceToPulse * distanceToPulse * uSharp);
         float tailPhase = fract(vUv.x * uPulseCount - uTime * uSpeed + vSeed + 0.10);
         float tail = exp(-pow(min(tailPhase, 1.0 - tailPhase), 2.0) * 50.0);
         float facing = 0.45 + 0.55 * pow(abs(dot(normalize(vNormal), normalize(vView))), 0.7);
-        float energy = (0.2 + pulse * 1.5 + tail * 0.2) * uEnergy;
+        float energy = (uBase + pulse * 1.5 + tail * 0.2) * uEnergy;
         gl_FragColor = vec4(uColor * energy * facing, 0.52 + pulse * 0.45);
         #include <fog_fragment>
         #include <tonemapping_fragment>
@@ -294,108 +331,252 @@ function makeGlowPoints(points: { position: THREE.Vector3; color: THREE.Color }[
   return mesh;
 }
 
-/** The well field: 12 trunks, each fanning into 10 directional branches (120 in total). */
+/** Scene-space centre line of one branch of one pad: leaves its slot on the ring, runs in the bundle, then peels off. */
+function branchCurve(well: Well, b: (typeof PAD_BRANCHES)[number], wobble: number) {
+  const tipY = TD_Y * b.tip;
+  const profile = branchProfile(b, 24);
+  const ca = Math.cos(b.az);
+  const sa = Math.sin(b.az) * Z_FLAT;
+  const points = profile.map(([u, s]) => {
+    const lateral = 0.2 + u * b.reach * REACH * (1 + wobble);
+    return new THREE.Vector3(well.pos.x + ca * lateral, KICK_Y + s * (tipY - KICK_Y), well.pos.z + sa * lateral);
+  });
+  return { curve: new THREE.CatmullRomCurve3(points, false, "centripetal"), end: points[points.length - 1] };
+}
+
+/** Rank → reveal order: the first four are open on day one; the six reserve slots open one by one. */
+const orderOf = (rank: number) => (rank < PAD.initial ? -1 : (rank - (PAD.initial - 1)) / (PAD.branches - PAD.initial));
+const growthOf = (rank: number, grow: number) => THREE.MathUtils.clamp((grow - orderOf(rank) * 0.75) / 0.25, 0, 1);
+
+/**
+ * The well field: 12 well pads. Each is a wellhead, a copper conductor casing, a ring of ten slots (four open, six
+ * sealed until the pad grows), ten fountain branches (6 production + 4 injection), a motherbore probe and a hot zone.
+ */
 function buildField() {
   const group = new THREE.Group();
   const production: FlowCurve[] = [];
   const injection: FlowCurve[] = [];
-  const ends: { position: THREE.Vector3; color: THREE.Color }[] = [];
+  const ends: { position: THREE.Vector3; color: THREE.Color; rank: number }[] = [];
   const nodeColor = { production: new THREE.Color(ORANGE), injection: new THREE.Color(BLUE) };
+  const specks: { p: THREE.Vector3; rank: number; t: number; seed: number }[] = [];
+  const random = seededRandom(4093);
 
   WELLS.forEach((well, w) => {
-    BRANCH_PRODUCTION.forEach((isProduction, b) => {
-      const angle = (b / 10) * Math.PI * 2 + w * 0.43 + 0.18;
-      const reach = 2.7 + Math.abs(Math.sin((w * 10 + b) * 2.7)) * 1.2 + (b % 3) * 0.35;
-      const bend = Math.sin(w * 1.3 + b) * 0.6;
-      const direction = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
-      const tangent = new THREE.Vector3(-Math.sin(angle), 0, Math.cos(angle));
-      const point = (r: number, y: number, side: number) =>
-        well.pos.clone().addScaledVector(direction, r).addScaledVector(tangent, side).setY(y);
-      const endY = RESERVOIR_Y - 1.6 - (b % 3) * 0.75 - ((w + b) % 2) * 0.35;
-      const end = point(reach, endY, bend);
-      const curve = new THREE.CatmullRomCurve3([
-        point(0.04, KICKOFF_Y, 0),
-        point(0.5, RESERVOIR_Y + 0.5, 0),
-        point(reach * 0.45, RESERVOIR_Y - 1.0 - (b % 3) * 0.3, bend * 0.5),
-        point(reach * 0.78, endY - 0.12, bend * 0.85),
-        end,
-      ]);
-      const seed = ((w * 10 + b) * 0.61803) % 1;
-      (isProduction ? production : injection).push({ curve, seed });
-      ends.push({ position: end, color: isProduction ? nodeColor.production : nodeColor.injection });
+    PAD_BRANCHES.forEach((b) => {
+      const wobble = Math.sin(w * 1.7 + b.rank * 2.3) * 0.07;
+      const { curve, end } = branchCurve(well, b, wobble);
+      const seed = ((w * 10 + b.rank) * 0.61803) % 1;
+      (b.role === "production" ? production : injection).push({ curve, seed, order: orderOf(b.rank) });
+      ends.push({ position: end, color: b.role === "production" ? nodeColor.production : nodeColor.injection, rank: b.rank });
+      // N2 nanofoam: specks scattered along the open hole
+      for (let k = 0; k < 7; k += 1) {
+        const t = 0.12 + random() * 0.88;
+        const at = curve.getPointAt(t);
+        at.x += (random() - 0.5) * 0.22;
+        at.z += (random() - 0.5) * 0.22;
+        at.y += (random() - 0.5) * 0.3;
+        specks.push({ p: at, rank: b.rank, t, seed: random() * 6.28 });
+      }
     });
   });
 
-  const branchRadius = 0.062;
-  const productionFlow = makeFlowMesh(production, ORANGE, -0.27, branchRadius, 3, 56);
-  const injectionFlow = makeFlowMesh(injection, BLUE, 0.23, branchRadius, 3, 56);
+  // the dev-only film render is a 720p frame, so its branches are drawn a little heavier to read at that size
+  const branchRadius = 0.07 * (import.meta.env.DEV && (window as unknown as { __FILM__?: boolean }).__FILM__ === true ? 1.55 : 1);
+  const productionFlow = makeFlowMesh(production, ORANGE, -0.27, branchRadius, 14, 96, { sharp: 1500, base: 0.34 });
+  const injectionFlow = makeFlowMesh(injection, BLUE, 0.23, branchRadius, 14, 96, { sharp: 1500, base: 0.34 });
 
-  // Trunks: heat rises in an orange line, cooled fluid returns in a blue one, beside each other.
+  // Motherbore probe: a cyan dashed line down the middle of every pad to a glowing node in the hot zone.
+  const probeY = TD_Y * 0.955;
+  const probeCurves: FlowCurve[] = WELLS.map((well, w) => ({
+    curve: new THREE.LineCurve3(new THREE.Vector3(well.pos.x, KICK_Y, well.pos.z), new THREE.Vector3(well.pos.x, probeY, well.pos.z)),
+    seed: (w * 0.29) % 1,
+  }));
+  const probeFlow = makeFlowMesh(probeCurves, PROBE, 0.32, 0.03, 34, 90);
+
+  // Surface leg: heat comes up the casing in an orange line, cooled fluid goes down in a blue one.
   const upCurves: FlowCurve[] = [];
   const downCurves: FlowCurve[] = [];
   WELLS.forEach((well, w) => {
     upCurves.push({
-      curve: new THREE.LineCurve3(new THREE.Vector3(well.pos.x - 0.1, KICKOFF_Y, well.pos.z), new THREE.Vector3(well.pos.x - 0.1, 0.35, well.pos.z)),
+      curve: new THREE.LineCurve3(new THREE.Vector3(well.pos.x - 0.085, KICK_Y, well.pos.z), new THREE.Vector3(well.pos.x - 0.085, 0.35, well.pos.z)),
       seed: (w * 0.37) % 1,
     });
     downCurves.push({
-      curve: new THREE.LineCurve3(new THREE.Vector3(well.pos.x + 0.1, KICKOFF_Y, well.pos.z), new THREE.Vector3(well.pos.x + 0.1, 0.35, well.pos.z)),
+      curve: new THREE.LineCurve3(new THREE.Vector3(well.pos.x + 0.085, KICK_Y, well.pos.z), new THREE.Vector3(well.pos.x + 0.085, 0.35, well.pos.z)),
       seed: (w * 0.53) % 1,
     });
   });
-  const trunkUp = makeFlowMesh(upCurves, ORANGE, 0.37, 0.05, 6, 40);
-  const trunkDown = makeFlowMesh(downCurves, BLUE, -0.29, 0.042, 6, 40);
+  const trunkUp = makeFlowMesh(upCurves, ORANGE, 0.37, 0.04, 4, 40);
+  const trunkDown = makeFlowMesh(downCurves, BLUE, -0.29, 0.034, 4, 40);
 
-  // Glass casings: one instanced mesh for all twelve shafts.
-  const casingHeight = -KICKOFF_Y + 0.2;
+  // Colloidal conductor casing: a short copper tube with ring collars, one instanced mesh for all twelve.
+  const casingLength = -KICK_Y + 0.25;
   const casings = new THREE.InstancedMesh(
-    new THREE.CylinderGeometry(0.27, 0.27, casingHeight, 16, 1, true),
-    new THREE.MeshStandardMaterial({ color: "#8391a7", metalness: 0.25, roughness: 0.14, transparent: true, opacity: 0.14, side: THREE.DoubleSide, depthWrite: false }),
+    new THREE.CylinderGeometry(0.24, 0.24, casingLength, 20, 1, true),
+    new THREE.MeshStandardMaterial({ color: COPPER, metalness: 0.75, roughness: 0.32, emissive: "#6b3210", emissiveIntensity: 0.55, transparent: true, opacity: 0.5, side: THREE.DoubleSide, depthWrite: false }),
     WELLS.length,
+  );
+  const collarsPerCasing = 5;
+  const collars = new THREE.InstancedMesh(
+    new THREE.TorusGeometry(0.255, 0.03, 8, 24),
+    new THREE.MeshStandardMaterial({ color: "#e0904a", metalness: 0.8, roughness: 0.3, emissive: "#8a4513", emissiveIntensity: 0.7 }),
+    WELLS.length * collarsPerCasing,
   );
   const beams = new THREE.InstancedMesh(
     new THREE.CylinderGeometry(0.02, 0.06, 2.6, 10),
     new THREE.MeshBasicMaterial({ color: ORANGE, transparent: true, opacity: 0.16, blending: THREE.AdditiveBlending, depthWrite: false }),
     WELLS.length,
   );
+  // Reserve-slot ring at the foot of the casing, and the ten caps on it.
+  const slotRings = new THREE.InstancedMesh(
+    new THREE.TorusGeometry(0.46, 0.028, 8, 40),
+    new THREE.MeshStandardMaterial({ color: GOLD, metalness: 0.7, roughness: 0.35, emissive: "#7a5a12", emissiveIntensity: 0.7 }),
+    WELLS.length,
+  );
+  const caps = new THREE.InstancedMesh(new THREE.SphereGeometry(0.075, 10, 8), new THREE.MeshBasicMaterial({ toneMapped: false }), WELLS.length * PAD.branches);
+  // Hot zone: concentric teal ellipses at the bottom of the probe, and the probe node.
+  const hotRings = new THREE.InstancedMesh(
+    new THREE.TorusGeometry(1, 0.012, 6, 72),
+    new THREE.MeshBasicMaterial({ color: TEAL, transparent: true, opacity: 0.42, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }),
+    WELLS.length * 3,
+  );
+  const probeNodes = new THREE.InstancedMesh(new THREE.SphereGeometry(0.15, 12, 10), new THREE.MeshBasicMaterial({ color: PROBE, toneMapped: false }), WELLS.length);
+
   const matrix = new THREE.Matrix4();
+  const flat = new THREE.Matrix4().makeRotationX(Math.PI / 2);
+  const scaleM = new THREE.Matrix4();
+  const slotPos = (well: Well, rank: number) => {
+    const b = PAD_BRANCHES[rank];
+    return new THREE.Vector3(well.pos.x + Math.cos(b.az) * 0.46, KICK_Y, well.pos.z + Math.sin(b.az) * 0.46);
+  };
   WELLS.forEach((well, index) => {
-    matrix.makeTranslation(well.pos.x, KICKOFF_Y / 2 + 0.1, well.pos.z);
+    matrix.makeTranslation(well.pos.x, KICK_Y / 2 + 0.12, well.pos.z);
     casings.setMatrixAt(index, matrix);
+    for (let c = 0; c < collarsPerCasing; c += 1) {
+      matrix.makeTranslation(well.pos.x, 0.05 + (c / collarsPerCasing) * (KICK_Y + 0.4) * 1, well.pos.z).multiply(flat);
+      collars.setMatrixAt(index * collarsPerCasing + c, matrix);
+    }
     matrix.makeTranslation(well.pos.x, 1.5, well.pos.z);
     beams.setMatrixAt(index, matrix);
+    matrix.makeTranslation(well.pos.x, KICK_Y, well.pos.z).multiply(flat);
+    slotRings.setMatrixAt(index, matrix);
+    matrix.makeTranslation(well.pos.x, probeY, well.pos.z);
+    probeNodes.setMatrixAt(index, matrix);
+    [1.1, 2.1, 3.3].forEach((radius, r) => {
+      matrix.makeTranslation(well.pos.x, probeY + 0.3, well.pos.z).multiply(flat);
+      scaleM.makeScale(radius, radius * Z_FLAT * 1.5, 1);
+      matrix.multiply(scaleM);
+      hotRings.setMatrixAt(index * 3 + r, matrix);
+    });
   });
-  casings.frustumCulled = false;
-  beams.frustumCulled = false;
+  [casings, collars, beams, slotRings, caps, hotRings, probeNodes].forEach((mesh) => { mesh.frustumCulled = false; });
 
-  // Nodes at every branch end (120), plus soft glows.
-  const nodes = new THREE.InstancedMesh(new THREE.SphereGeometry(0.085, 10, 8), new THREE.MeshBasicMaterial({ toneMapped: false }), ends.length);
-  ends.forEach((end, index) => {
-    matrix.makeTranslation(end.position.x, end.position.y, end.position.z);
-    nodes.setMatrixAt(index, matrix);
-    nodes.setColorAt(index, end.color);
-  });
+  // Nodes at every branch end (120), plus soft glows. The reserve ones appear as their slots open.
+  const nodes = new THREE.InstancedMesh(new THREE.SphereGeometry(0.1, 10, 8), new THREE.MeshBasicMaterial({ toneMapped: false }), ends.length);
   nodes.frustumCulled = false;
-  const endGlow = makeGlowPoints(ends, 620);
+  const endGlow = makeGlowPoints(ends, 640);
   endGlow.material.uniforms.uStrength.value = 0.6;
+  const glowColors = endGlow.geometry.getAttribute("aColor") as THREE.BufferAttribute;
 
-  group.add(productionFlow, injectionFlow, trunkUp, trunkDown, casings, beams, nodes, endGlow);
-  return { group, flows: [productionFlow, injectionFlow, trunkUp, trunkDown], endGlow };
+  // Nanofoam: tiny specks along the branches, twinkling, timed to the AI model's pulses.
+  const speckGeometry = new THREE.BufferGeometry();
+  speckGeometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(specks.flatMap((s) => [s.p.x, s.p.y, s.p.z])), 3));
+  speckGeometry.setAttribute("aPhase", new THREE.BufferAttribute(new Float32Array(specks.map((s) => s.seed)), 1));
+  speckGeometry.setAttribute("aOrder", new THREE.BufferAttribute(new Float32Array(specks.map((s) => orderOf(s.rank))), 1));
+  speckGeometry.setAttribute("aT", new THREE.BufferAttribute(new Float32Array(specks.map((s) => s.t)), 1));
+  const speckMaterial = new THREE.ShaderMaterial({
+    uniforms: { uTime: { value: 0 }, uDpr: { value: 1 }, uGrow: { value: 1 } },
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    vertexShader: /* glsl */ `
+      uniform float uTime; uniform float uDpr; uniform float uGrow;
+      attribute float aPhase; attribute float aOrder; attribute float aT;
+      varying float vA;
+      void main() {
+        float grown = clamp((uGrow - aOrder * 0.75) / 0.25, 0.0, 1.0);
+        float on = step(aT, grown);
+        float tw = 0.5 + 0.5 * sin(uTime * 1.7 + aPhase * 5.0 + aT * 9.0);
+        vA = on * (0.35 + tw * 0.65);
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        gl_Position = projectionMatrix * mv;
+        gl_PointSize = clamp((0.9 + tw * 0.9) * uDpr * 26.0 / max(-mv.z, 1.0), 1.0, 5.0);
+      }
+    `,
+    fragmentShader: /* glsl */ `
+      varying float vA;
+      void main() {
+        float r = length(gl_PointCoord - 0.5) * 2.0;
+        float a = (1.0 - smoothstep(0.3, 1.0, r)) * vA;
+        gl_FragColor = vec4(vec3(0.93, 0.95, 1.0) * 1.1, a * 0.85);
+      }
+    `,
+  });
+  const speckPoints = new THREE.Points(speckGeometry, speckMaterial);
+  speckPoints.frustumCulled = false;
+
+  const base = new THREE.Color();
+  const gold = new THREE.Color(GOLD);
+  let lastGrow = -1;
+  /** 0 = four branches, 1 = all ten */
+  const setGrow = (grow: number) => {
+    if (Math.abs(grow - lastGrow) < 0.002) return;
+    lastGrow = grow;
+    [productionFlow, injectionFlow].forEach((flow) => { flow.material.uniforms.uGrow.value = grow; });
+    speckMaterial.uniforms.uGrow.value = grow;
+    ends.forEach((end, index) => {
+      const g = growthOf(end.rank, grow);
+      const s = g > 0.98 ? 1 : 0.0001;
+      matrix.makeTranslation(end.position.x, end.position.y, end.position.z).multiply(scaleM.makeScale(s, s, s));
+      nodes.setMatrixAt(index, matrix);
+      nodes.setColorAt(index, end.color);
+      glowColors.setXYZ(index, end.color.r * (g > 0.98 ? 1 : 0), end.color.g * (g > 0.98 ? 1 : 0), end.color.b * (g > 0.98 ? 1 : 0));
+    });
+    nodes.instanceMatrix.needsUpdate = true;
+    if (nodes.instanceColor) nodes.instanceColor.needsUpdate = true;
+    glowColors.needsUpdate = true;
+    WELLS.forEach((well, w) => {
+      PAD_BRANCHES.forEach((b) => {
+        const g = growthOf(b.rank, grow);
+        const open = b.rank < PAD.initial || g > 0.02;
+        const p = slotPos(well, b.rank);
+        const s = open ? 0.9 : 1.1;
+        matrix.makeTranslation(p.x, p.y, p.z).multiply(scaleM.makeScale(s, s, s));
+        caps.setMatrixAt(w * PAD.branches + b.rank, matrix);
+        base.copy(b.role === "production" ? nodeColor.production : nodeColor.injection);
+        caps.setColorAt(w * PAD.branches + b.rank, open ? base : gold);
+      });
+    });
+    caps.instanceMatrix.needsUpdate = true;
+    if (caps.instanceColor) caps.instanceColor.needsUpdate = true;
+  };
+  setGrow(0);
+
+  group.add(productionFlow, injectionFlow, probeFlow, trunkUp, trunkDown, casings, collars, beams, slotRings, caps, hotRings, probeNodes, nodes, endGlow, speckPoints);
+  return {
+    group,
+    flows: [productionFlow, injectionFlow, probeFlow, trunkUp, trunkDown],
+    endGlow,
+    specks: speckMaterial,
+    setGrow,
+    probeGlow: makeGlowPoints(WELLS.map((well) => ({ position: new THREE.Vector3(well.pos.x, probeY, well.pos.z), color: new THREE.Color(PROBE) })), 1100),
+  };
 }
 
-function makeLabel(text: string) {
+function makeLabel(text: string, opts: { w?: number; h?: number; size?: number; color?: string; glow?: string } = {}) {
+  const { w = 320, h = 120, size = 64, color = "#ffe6d2", glow = "rgba(255,120,60,0.85)" } = opts;
   const canvas = document.createElement("canvas");
-  canvas.width = 320;
-  canvas.height = 120;
+  canvas.width = w;
+  canvas.height = h;
   const context = canvas.getContext("2d");
   if (context) {
-    context.font = "700 64px 'JetBrains Mono', ui-monospace, monospace";
+    context.font = `700 ${size}px 'JetBrains Mono', ui-monospace, monospace`;
     context.textAlign = "center";
     context.textBaseline = "middle";
-    context.shadowColor = "rgba(255,120,60,0.85)";
+    context.shadowColor = glow;
     context.shadowBlur = 14;
-    context.fillStyle = "#ffe6d2";
-    context.fillText(text, 160, 62);
+    context.fillStyle = color;
+    context.fillText(text, w / 2, h / 2 + 2);
   }
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
@@ -496,7 +677,7 @@ function buildSurfaceCampus() {
   return { group, wellheadGlow };
 }
 
-/** Annotations: the 50 m well spacing and the 5 km depth. Fade with scroll progress. */
+/** Annotations: the 50 m well spacing, the pad parts and the 5 km depth. Each fades with scroll progress. */
 function buildAnnotations() {
   const group = new THREE.Group();
   const lift = new THREE.Vector3(0, 1.15, 0);
@@ -509,18 +690,34 @@ function buildAnnotations() {
   spacingLabel.position.copy(FEATURED_INNER.clone().lerp(FEATURED_OUTER, 0.5)).add(new THREE.Vector3(0, 2.0, 0));
   spacingLabel.scale.set(2.1, 0.79, 1);
 
-  const x = FEATURED_OUTER.x + 1.15;
+  const x = FEATURED_OUTER.x + 5.9;
   const depth = makeDimension(
     new THREE.Vector3(x, 0, FEATURED_OUTER.z),
-    new THREE.Vector3(x, RESERVOIR_Y - 2.6, FEATURED_OUTER.z),
+    new THREE.Vector3(x, TD_Y, FEATURED_OUTER.z),
     new THREE.Vector3(0.35, 0, 0),
   );
   const depthLabel = makeLabel("5 km");
-  depthLabel.position.set(x + 1.5, (RESERVOIR_Y - 2.6) / 2, FEATURED_OUTER.z);
+  depthLabel.position.set(x + 1.5, TD_Y / 2, FEATURED_OUTER.z);
   depthLabel.scale.set(2.6, 0.98, 1);
 
+  // Parts of the pad, named as in the design.
+  const tag = (text: string, at: THREE.Vector3, width: number, color: string, glow: string) => {
+    const cw = Math.round(text.length * 27 + 60);
+    const sprite = makeLabel(text, { w: cw, h: 96, size: 44, color, glow });
+    sprite.position.copy(at);
+    sprite.scale.set(width, width * (96 / cw), 1);
+    group.add(sprite);
+    return sprite;
+  };
+  const o = FEATURED_OUTER;
+  const casingTag = tag("COLLOIDAL CONDUCTOR CASING", new THREE.Vector3(o.x + 2.9, -1.6, o.z), 6.4, "#ffd2a6", "rgba(255,140,60,0.9)");
+  const slotsTag = tag("RESERVE SLOTS · SEALED", new THREE.Vector3(o.x + 2.6, KICK_Y - 0.6, o.z), 5.4, "#ffe6a8", "rgba(233,185,73,0.9)");
+  const probeTag = tag("MOTHERBORE PROBE", new THREE.Vector3(o.x - 3.4, -17, o.z), 5.2, "#aef2ff", "rgba(70,227,255,0.9)");
+  const probeTag2 = tag("ACOUSTIC · THERMAL · EM", new THREE.Vector3(o.x - 3.4, -18.3, o.z), 6.0, "#7fdcec", "rgba(70,227,255,0.8)");
+  const growTag = tag("BRANCHES 4 → 10 · DEEPER INTO HOTTER ROCK", new THREE.Vector3(o.x, -36.2, o.z), 12.5, "#ffb487", "rgba(255,90,31,0.9)");
+
   group.add(spacing, spacingLabel, depth, depthLabel);
-  return { group, spacing, spacingLabel, depth, depthLabel };
+  return { group, spacing, spacingLabel, depth, depthLabel, casingTag, slotsTag, probeTag, probeTag2, growTag };
 }
 
 function seededRandom(seed: number) {
@@ -597,22 +794,24 @@ function buildDust(count: number) {
 
 type CameraKey = { p: number; position: THREE.Vector3; target: THREE.Vector3 };
 /**
- * Beats (matching BEATS in Descent.tsx): 0 surface · 0.14 well spacing · 0.27 five km down ·
- * 0.45 ten branches · 0.65 the whole field · 0.87 heat to compute.
+ * Beats (matching BEATS in Descent.tsx): 0 surface · 0.12 well spacing · 0.24 one well pad ·
+ * 0.38 four branches grow to ten · 0.53 five km down · 0.70 the whole field · 0.88 heat to compute.
  * While descending the camera stays inside the open +z wedge of the cutaway (|x| < z - 3).
  */
 const cameraKeys: CameraKey[] = [
   [0, [15, 10, 36], [0, 0.5, 2]],
-  [0.07, [13, 6, 27], [0, 0.3, 4.5]],
-  [0.14, [11, 3.2, 13.5], [0, 0.4, 6]],
-  [0.2, [10, -3, 15], [0, -3, 6]],
-  [0.27, [9, -11, 16], [0, -13, 6]],
-  [0.36, [10, -22, 19], [0, -24, 6]],
-  [0.45, [12, -30.2, 21], [0, -33.2, 6]],
-  [0.55, [-9, -31.8, 20], [0, -34, 6]],
-  [0.65, [-15, -25.5, 29], [0, -33, 4]],
-  [0.76, [27, -19, 42], [0, -22, 3]],
-  [0.87, [32, -10, 46], [0, -16, 2]],
+  [0.06, [13, 6, 27], [0, 0.3, 4.5]],
+  [0.12, [11, 3.2, 13.5], [0, 0.4, 6]],
+  [0.18, [8.5, -1.2, 14.2], [0, -2.2, 6]],
+  [0.24, [5.2, -3.4, 15.5], [0.4, -3.6, 6.4]],
+  [0.31, [6.5, -8.5, 22], [0, -9.5, 6]],
+  [0.38, [7.5, -14, 29], [0, -15, 6]],
+  [0.46, [8, -18, 33], [0, -18.5, 6]],
+  [0.53, [9.5, -24, 32], [0, -25.5, 6]],
+  [0.62, [-9, -29.5, 25], [0, -30.5, 6]],
+  [0.70, [-15, -25.5, 29], [0, -33, 4]],
+  [0.79, [27, -19, 42], [0, -22, 3]],
+  [0.88, [32, -10, 46], [0, -16, 2]],
   [0.94, [19, -2, 30], [0, -2, 3]],
   [1, [15, 10, 36], [0, 0.5, 2]],
 ].map(([p, position, target]) => ({
@@ -650,8 +849,9 @@ function cameraPath(p: number): { position: THREE.Vector3; target: THREE.Vector3
 /** A 270-degree pie leaves a front-facing quarter (centred on +z) of the geology open. */
 function makeCutawayLayer(radius: number, thickness: number) {
   const shape = new THREE.Shape();
-  const start = Math.PI * 0.75;
-  const end = Math.PI * 2.25;
+  // the open face is 100° wide, centred on +z, so a fan of branches fits inside it
+  const start = Math.PI * (140 / 180);
+  const end = Math.PI * (400 / 180);
   shape.moveTo(0, 0);
   shape.lineTo(Math.cos(start) * radius, Math.sin(start) * radius);
   shape.absarc(0, 0, radius, start, end, false);
@@ -718,8 +918,12 @@ export default function DescentScene(props: DescentSceneProps) {
     let previousTime = 0;
     let elapsed = 0;
     let progress = clamp01(Number.isFinite(propsRef.current.progressRef.current) ? propsRef.current.progressRef.current : 0);
-    const hardwareLimited = (navigator.hardwareConcurrency || 8) <= 4;
-    let lowPower = window.innerWidth < 768 || hardwareLimited;
+    // Dev-only deterministic mode: the hero film is rendered frame by frame by driving progress and time from outside.
+    const film = import.meta.env.DEV && (window as unknown as { __FILM__?: boolean }).__FILM__ === true;
+    let filmP = 0;
+    let filmT = 0;
+    const hardwareLimited = !film && (navigator.hardwareConcurrency || 8) <= 4;
+    let lowPower = !film && (window.innerWidth < 768 || hardwareLimited);
     const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     let reducedMotion = motionQuery.matches;
     const scene = new THREE.Scene();
@@ -737,6 +941,7 @@ export default function DescentScene(props: DescentSceneProps) {
     let reservoirCore: Glow | undefined;
     let ascentGlow: Glow | undefined;
     let reservoirLight: THREE.PointLight | undefined;
+    let fieldRef: ReturnType<typeof buildField> | undefined;
 
     const pause = () => {
       if (frame) cancelAnimationFrame(frame);
@@ -791,14 +996,19 @@ export default function DescentScene(props: DescentSceneProps) {
 
     const renderFrame = (now: number) => {
       frame = 0;
-      if (disposed || !inView || document.hidden || !hasSize || !renderer) return;
+      if (disposed || (!film && (!inView || document.hidden)) || !hasSize || !renderer) return;
       try {
-        const dt = previousTime ? Math.min((now - previousTime) / 1000, 0.05) : 1 / 60;
+        const dt = film ? 1 / 24 : previousTime ? Math.min((now - previousTime) / 1000, 0.05) : 1 / 60;
         previousTime = now;
-        elapsed += dt;
-        const incoming = propsRef.current.progressRef.current;
-        const target = Number.isFinite(incoming) ? clamp01(incoming) : progress;
-        progress += (target - progress) * (1 - Math.exp(-dt * 6));
+        if (film) {
+          elapsed = filmT;
+          progress = filmP;
+        } else {
+          elapsed += dt;
+          const incoming = propsRef.current.progressRef.current;
+          const target = Number.isFinite(incoming) ? clamp01(incoming) : progress;
+          progress += (target - progress) * (1 - Math.exp(-dt * 6));
+        }
         const path = cameraPath(progress);
         // Portrait compositions keep the whole field inside a comfortable framing.
         const portrait = camera.aspect < 0.85;
@@ -817,18 +1027,31 @@ export default function DescentScene(props: DescentSceneProps) {
           flow.material.uniforms.uEnergy.value = energy;
         });
         // The rock burns away to reveal the whole field, then heals as the camera rises.
-        const dissolve = smoothstep(0.56, 0.72, progress) * (1 - smoothstep(0.9, 0.99, progress));
+        const dissolve = smoothstep(0.63, 0.77, progress) * (1 - smoothstep(0.9, 0.99, progress));
+        // four branches are open on every pad; the six reserve slots open one by one during the "4 → 10" beat
+        if (fieldRef) {
+          fieldRef.setGrow(smoothstep(0.375, 0.5, progress));
+          fieldRef.specks.uniforms.uTime.value = elapsed;
+        }
         strataMaterials.forEach((material) => {
           material.uniforms.uHeat.value = 0.35 + smoothstep(0.18, 0.6, progress) * 0.9;
           material.uniforms.uDissolve.value = dissolve;
         });
         if (annotations) {
-          const spacingOpacity = smoothstep(0.03, 0.09, progress) * (1 - smoothstep(0.26, 0.32, progress));
-          const depthOpacity = smoothstep(0.17, 0.23, progress) * (1 - smoothstep(0.43, 0.5, progress));
+          const spacingOpacity = smoothstep(0.03, 0.08, progress) * (1 - smoothstep(0.15, 0.2, progress));
+          const padOpacity = smoothstep(0.17, 0.22, progress) * (1 - smoothstep(0.3, 0.35, progress));
+          const probeOpacity = smoothstep(0.31, 0.37, progress) * (1 - smoothstep(0.47, 0.52, progress));
+          const depthOpacity = smoothstep(0.44, 0.5, progress) * (1 - smoothstep(0.6, 0.66, progress));
+          const growOpacity = smoothstep(0.4, 0.46, progress) * (1 - smoothstep(0.6, 0.66, progress));
           annotations.spacing.material.opacity = spacingOpacity * 0.9;
           annotations.spacingLabel.material.opacity = spacingOpacity;
           annotations.depth.material.opacity = depthOpacity * 0.9;
           annotations.depthLabel.material.opacity = depthOpacity;
+          annotations.casingTag.material.opacity = padOpacity;
+          annotations.slotsTag.material.opacity = padOpacity;
+          annotations.probeTag.material.opacity = probeOpacity;
+          annotations.probeTag2.material.opacity = probeOpacity * 0.85;
+          annotations.growTag.material.opacity = growOpacity;
         }
         if (dust) {
           dust.material.uniforms.uTime.value = elapsed;
@@ -836,7 +1059,7 @@ export default function DescentScene(props: DescentSceneProps) {
           dust.material.uniforms.uOpacity.value = (0.2 + smoothstep(0.12, 0.45, progress) * 0.22) * (1 - smoothstep(0.9, 1, progress) * 0.7);
         }
         const heat = 0.48 + smoothstep(0.32, 0.56, progress) * 0.72;
-        if (reservoirGlow) reservoirGlow.material.uniforms.uStrength.value = heat * (0.5 + dissolve * 0.12);
+        if (reservoirGlow) reservoirGlow.material.uniforms.uStrength.value = heat * (0.36 + dissolve * 0.08);
         if (reservoirCore) reservoirCore.material.uniforms.uStrength.value = heat * 0.8;
         if (reservoirLight) reservoirLight.intensity = 10 + heat * 8;
         const ascent = smoothstep(0.87, 1, progress);
@@ -850,13 +1073,21 @@ export default function DescentScene(props: DescentSceneProps) {
         if (bloom) bloom.strength = 0.5 - ascent * 0.3;
         if (composer && !lowPower) composer.render(dt);
         else renderer.render(scene, camera);
-        if (!disposed) frame = requestAnimationFrame(renderFrame);
+        if (!disposed && !film) frame = requestAnimationFrame(renderFrame);
       } catch {
         fail();
       }
     };
+    if (film) {
+      (window as unknown as { __filmFrame?: (p: number, t: number) => boolean }).__filmFrame = (p, t) => {
+        filmP = p;
+        filmT = t;
+        renderFrame(performance.now());
+        return true;
+      };
+    }
     function syncLoop() {
-      if (disposed) return;
+      if (disposed || film) return;
       if (inView && !document.hidden && hasSize) {
         if (!frame) frame = requestAnimationFrame(renderFrame);
       } else pause();
@@ -902,7 +1133,7 @@ export default function DescentScene(props: DescentSceneProps) {
       billboards.push(campusGlow);
       scene.add(campusGlow);
 
-      for (let index = 0; index < 9; index += 1) {
+      for (let index = 0; index < 10; index += 1) {
         const thickness = 2.9 + Math.sin(index * 1.6) * 0.12;
         const material = makeStrataMaterial(index);
         strataMaterials.push(material);
@@ -915,7 +1146,9 @@ export default function DescentScene(props: DescentSceneProps) {
       const field = buildField();
       scene.add(field.group);
       flowTubes.push(...field.flows);
-      pointGlows.push(field.endGlow);
+      pointGlows.push(field.endGlow, field.probeGlow);
+      scene.add(field.probeGlow);
+      fieldRef = field;
 
       annotations = buildAnnotations();
       scene.add(annotations.group);
@@ -958,7 +1191,18 @@ export default function DescentScene(props: DescentSceneProps) {
           camera.aspect = Math.max(1, width) / Math.max(1, height);
           camera.fov = camera.aspect < 0.85 ? 55 : 49;
           // On wide screens the copy sits left, so the whole scene is shifted right to keep annotations clear of it.
-          if (camera.aspect > 1.3 && width >= 1024) camera.setViewOffset(width, height, -width * 0.09, 0, width, height);
+          if (annotations) {
+            // labels shrink on narrow screens (and a little in the dev-only film render) so they never run off the edge
+            const k = camera.aspect < 0.85 ? (film ? 0.5 : 0.62) : film ? 0.6 : 1;
+            [annotations.casingTag, annotations.slotsTag, annotations.probeTag, annotations.probeTag2, annotations.growTag].forEach((tg) => {
+              const base = (tg.userData.baseScale ??= tg.scale.clone()) as THREE.Vector3;
+              tg.scale.set(base.x * k, base.y * k, base.z);
+            });
+          }
+          if (film) {
+            const off = (window as unknown as { __FILM_OFF__?: [number, number] }).__FILM_OFF__ ?? [0, 0];
+            camera.setViewOffset(width, height, -width * off[0], height * off[1], width, height);
+          } else if (camera.aspect > 1.3 && width >= 1024) camera.setViewOffset(width, height, -width * 0.09, 0, width, height);
           else camera.clearViewOffset();
           camera.updateProjectionMatrix();
           composer?.setPixelRatio(dpr);

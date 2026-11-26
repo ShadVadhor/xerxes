@@ -38,7 +38,7 @@ export type Stop = {
 export const WALK_META = {
   title: "Xerxes 3D Walkthrough — Inside a Geothermal AI Data Center",
   description:
-    "Walk through a Xerxes production pod in 3D: the hub and digital twin, compute halls, CO₂ cooling, the NanoVault thermal store, wellheads, 120 deep branches and the biogas bus. Design targets, schematic scale.",
+    "Walk through a Xerxes production pod in 3D: the hub and digital twin, compute halls, CO₂ cooling, the NanoVault thermal store, well pads, 120 deep branches and the biogas bus. Design targets, schematic scale.",
   path: "/walkthrough",
 };
 
@@ -245,11 +245,11 @@ export const STOPS: Stop[] = [
     title: "Two wellheads,",
     accent: "fifty metres apart.",
     body:
-      "Heat becomes electricity beside the wellhead, not kilometres away: conversion losses under 5 percent against 10–15 percent for legacy plants. Fifty metres between wells keeps neighbours from stealing each other's heat.",
+      "Every well is a pad of its own: one wellhead, a short copper casing and a gold ring of ten slots, with the heat-to-electric skid right beside it. Heat becomes electricity next to the well, not kilometres away: losses under 5 percent against 10–15 percent for legacy plants. Fifty metres between wells keeps neighbours from stealing each other's heat.",
     figures: [
       { v: "50 m", l: "Between wells" },
       { v: "< 5%", l: "Conversion loss · design" },
-      { v: "54 MW", l: "Per well · paper reference" },
+      { v: "50–54 MW", l: "Per well · modelled range" },
     ],
     basis: "White Paper V-1F · EQG surface plant",
     cam: [0, 15.6, 205],
@@ -258,7 +258,7 @@ export const STOPS: Stop[] = [
     portrait: { cam: [-12, 6.4, 212.5], look: [-24, 2.4, 227], fov: 78 },
     dwell: 10,
     hotspots: [
-      { at: [-25, 5.0, 226], label: "Wellhead A", text: "Production and injection lines meet here, ten branches below." },
+      { at: [-25, 5.0, 226], label: "Wellhead A", text: "One wellhead, one pad: a ring of ten slots sits below, four branches open and six sealed in reserve." },
       { at: [25, 5.0, 226], label: "Wellhead B", text: "Its twin, fifty metres across, thermally isolated by distance." },
       { at: [-18, 2.4, 232], label: "Heat-to-electric", text: "Conversion next to the well keeps losses under 5%." },
     ],
@@ -267,18 +267,19 @@ export const STOPS: Stop[] = [
     id: "subsurface",
     zone: "Subsurface · 0 – 5 km",
     kicker: "09 · The earth loop",
-    title: "120 branches,",
-    accent: "five kilometres down.",
+    title: "Twelve pads,",
+    accent: "120 branches.",
     body:
-      "Each well opens into ten directional branches: six production lines bring heat up and four injection lines return cooled fluid. Nanomaterial conduction and dry nitrogen nanofoam stimulation open the rock with no water and no proppant. Twelve wells, 120 branches.",
+      "Below every wellhead the pad opens: a short copper casing, a ring of ten slots and a fountain of branches that peel off into hotter rock, six producing and four injecting. A pad starts with four open branches and grows to ten, each new one deeper than the last. A motherbore probe listens down the middle, and dry nitrogen nanofoam, timed by AI, opens the rock with no water and no proppant.",
     figures: [
-      { v: "10", l: "Branches per well · 6 + 4" },
-      { v: "~5 km", l: "Depth · schematic 25 : 1" },
-      { v: "> 50%", l: "Better extraction than steel · design" },
+      { v: "10", l: "Branches per pad · 6 + 4" },
+      { v: "4 → 10", l: "Open on day one → grown" },
+      { v: "~5 km", l: "Deepest branches · schematic 25 : 1" },
     ],
     basis: "White Paper V-1F · EQG · depth compressed for display",
     cam: [0, -104, 50],
-    look: [0, -108, 226],
+    look: [0, -104, 226],
+    fov: 70,
     cut: true,
     via: [
       { p: [0, -3, 150], l: [0, -22, 226] },
@@ -286,8 +287,10 @@ export const STOPS: Stop[] = [
     ],
     dwell: 12,
     hotspots: [
-      { at: [-25, -24, 226], label: "Injection", text: "Cooled fluid goes down four branches per well." },
-      { at: [-25, -118, 226], label: "Production", text: "Six branches per well carry heat up from 150 °C-plus rock." },
+      { at: [-25, -12, 226], label: "Casing", text: "Colloidal conductor casing: short and copper, it only reaches the ring, about an eighth of the way down." },
+      { at: [-25, -24, 226], label: "Ring of ten slots", text: "Four slots open on day one; six stay sealed in reserve until the pad grows." },
+      { at: [-33, -118, 226], label: "Production", text: "Six branches per pad carry heat up from 150 °C-plus rock; four injection branches return the cooled fluid." },
+      { at: [-25, -186, 226], label: "Motherbore probe", text: "Acoustic, thermal and EM sensing feeds an AI 3D model of the rock." },
       { at: [0, -190, 218], label: "50 m", text: "The spacing between wells, held all the way down." },
     ],
   },

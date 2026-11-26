@@ -7,7 +7,7 @@ import { LazyMount, SceneBoundary } from "./ui";
 const DescentScene = lazy(() => import("./DescentScene"));
 
 /** Progress at which each text step begins — matches the scene's camera beats */
-const BEATS = [0, 0.14, 0.27, 0.45, 0.65, 0.87];
+const BEATS = [0, 0.12, 0.24, 0.38, 0.53, 0.7, 0.88];
 
 export default function Descent() {
   const outer = useRef<HTMLElement>(null);
@@ -45,7 +45,7 @@ export default function Descent() {
   const s = DESCENT.steps[step];
 
   return (
-    <section ref={outer} id="technology" className="relative bg-obsidian" style={{ height: "640vh" }}>
+    <section ref={outer} id="technology" className="relative bg-obsidian" style={{ height: "720vh" }}>
       <div className="sticky top-0 h-[100svh] w-full overflow-hidden">
         {/* scene */}
         <div className="absolute inset-0">
@@ -91,7 +91,7 @@ export default function Descent() {
             <p className="mt-5 max-w-[46ch] text-[1.02rem] leading-relaxed text-white/72">{s.body}</p>
             {s.stat && (
               <div className="mt-7 flex items-baseline gap-3 border-t border-white/15 pt-5">
-                <span className="font-display text-[clamp(3.6rem,8vw,7.5rem)] font-bold leading-none text-magma-grad">{s.stat.value}</span>
+                <span className={`font-display whitespace-nowrap font-bold leading-none text-magma-grad ${s.stat.value.length > 3 ? "text-[clamp(2.8rem,6vw,5.6rem)]" : "text-[clamp(3.6rem,8vw,7.5rem)]"}`}>{s.stat.value}</span>
                 <span className="font-display text-3xl font-semibold text-white">{s.stat.unit}</span>
                 <span className="mono ml-2 text-[0.64rem] uppercase tracking-[0.2em] text-white/55">{s.stat.label}</span>
               </div>

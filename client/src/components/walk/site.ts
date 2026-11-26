@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { COL, Kit, V3, roundedPath, rng } from "./kit";
 import { Anchor, POD, WELL, anchor } from "./hub";
+import { PAD, PAD_BRANCHES, branchProfile } from "@/lib/wellpad";
 
 /** Biogas resilience yard east of Pod 1. */
 export function buildYard(kit: Kit, g: THREE.Group, A: Anchor[]) {
@@ -334,15 +335,25 @@ export function buildRoof(kit: Kit, g: THREE.Group) {
   }
 }
 
-/** The earth loop: two wells, ten branches each, 50 m apart. Depth is compressed ~25 : 1. */
+/**
+ * The earth loop: two well pads 50 m apart. Each is a copper casing, a ring of ten slots and a fountain of ten
+ * branches (six production, four injection) that peel off into hotter rock, with a motherbore probe down the
+ * middle. Depth is compressed ~25 : 1.
+ */
 export function buildUnder(kit: Kit, g: THREE.Group, A: Anchor[]) {
-  const R = rng(5);
   const baseZ = WELL.z;
   const DEPTH = 200;
-  // reference planes and strata
-  const strata = [-14, -40, -80, -120, -160];
+  const KICK = DEPTH * PAD.casing;
+  const MAXR = 21; // widest lateral reach in metres: the wells are 50 m apart, so the fans never meet
+  const RING = 2.6;
+  const GOLD = "#e9b949";
+  const TEAL = "#2fd0c0";
+  const PROBE = "#46e3ff";
+  // reference planes and strata: topsoil, an orange sandstone band, then reddish-brown rock
+  const strata = [-14, -27, -40, -80, -120, -160];
+  const strataCol = ["#c8742f", "#c8742f", "#c8742f", "#9a4a28", "#a0522d", "#d04a1c"];
   strata.forEach((y, i) => {
-    const pl = new THREE.Mesh(new THREE.PlaneGeometry(300, 300), kit.glow(i < 2 ? "#7a5a3e" : i < 4 ? "#a0522d" : "#d04a1c", 0.035 + i * 0.012));
+    const pl = new THREE.Mesh(new THREE.PlaneGeometry(300, 300), kit.glow(strataCol[i], i < 3 ? 0.032 : 0.016 + i * 0.004));
     kit.track(pl.geometry);
     pl.rotation.x = -Math.PI / 2;
     pl.position.set(0, y, baseZ);
@@ -361,7 +372,7 @@ export function buildUnder(kit: Kit, g: THREE.Group, A: Anchor[]) {
   top.position.set(0, -0.05, baseZ);
   g.add(top);
   // hot floor
-  const hot = new THREE.Mesh(new THREE.PlaneGeometry(260, 260), kit.glow(COL.magma, 0.28));
+  const hot = new THREE.Mesh(new THREE.PlaneGeometry(260, 260), kit.glow(COL.magma, 0.16));
   kit.track(hot.geometry);
   hot.rotation.x = -Math.PI / 2;
   hot.position.set(0, -DEPTH - 8, baseZ);
@@ -382,67 +393,97 @@ export function buildUnder(kit: Kit, g: THREE.Group, A: Anchor[]) {
   s50.position.set(0, -DEPTH + 11, baseZ - 8);
   g.add(s50);
 
-  // wells
-  const injection = new Set([1, 4, 6, 9]);
-  const slotDepth = (i: number) => (i < 6 ? 4 + i * 3 : 24 + (i - 6) * 5);
+  const slotAngle = (rank: number) => (rank / PAD.branches) * Math.PI * 2 - 1.2;
+  const probeY = DEPTH * 0.955;
   for (const sx of [-1, 1]) {
     const x = sx * WELL.x;
-    // casing and 10-slot neck
-    kit.cyl(0.8, 0.8, 42, kit.std("#3d4650", 0.9, 0.3), x, -21, baseZ, g, 16);
-    kit.cyl(1.3, 1.3, 40, kit.glow(COL.amber, 0.14), x, -21, baseZ, g, 16);
-    for (let i = 0; i < 10; i += 1) {
-      const p = new THREE.Mesh(new THREE.TorusGeometry(0.95, 0.12, 6, 16), kit.emit(COL.amber, 1.8));
-      kit.track(p.geometry);
-      p.rotation.x = Math.PI / 2;
-      p.position.set(x, -slotDepth(i), baseZ);
-      g.add(p);
+    // colloidal conductor casing: short, copper, with collars
+    kit.cyl(0.85, 0.85, KICK, kit.copper, x, -KICK / 2, baseZ, g, 18);
+    kit.cyl(1.35, 1.35, KICK, kit.glow(COL.amber, 0.12), x, -KICK / 2, baseZ, g, 18);
+    for (let k = 0; k < 5; k += 1) {
+      const collar = new THREE.Mesh(new THREE.TorusGeometry(1.0, 0.17, 6, 18), kit.emit("#e0904a", 1.2));
+      kit.track(collar.geometry);
+      collar.rotation.x = Math.PI / 2;
+      collar.position.set(x, -KICK * (0.1 + 0.2 * k), baseZ);
+      g.add(collar);
     }
-    // 3-inch sensor core down the middle
-    kit.flow([[x, -42, baseZ], [x, -DEPTH + 4, baseZ]], { color: "#e8f6ff", r: 0.14, spacing: 6, speed: 18, dir: 1, base: 0.8, width: 0.1 });
-    for (let k = 1; k <= 8; k += 1) {
-      const n = new THREE.Mesh(new THREE.SphereGeometry(0.34, 10, 8), kit.emit(COL.ledHi, 2));
+    // ring of ten slots at the foot of the casing, a cap on every slot (orange: production, blue: injection)
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(RING, 0.22, 8, 44), kit.emit(GOLD, 1.7));
+    kit.track(ring.geometry);
+    ring.rotation.x = Math.PI / 2;
+    ring.position.set(x, -KICK, baseZ);
+    g.add(ring);
+    PAD_BRANCHES.forEach(b => {
+      const a = slotAngle(b.rank);
+      const cap = new THREE.Mesh(new THREE.SphereGeometry(0.5, 10, 8), kit.emit(b.role === "production" ? COL.magma : COL.led, 2.2));
+      kit.track(cap.geometry);
+      cap.position.set(x + Math.cos(a) * RING, -KICK, baseZ + Math.sin(a) * RING);
+      g.add(cap);
+    });
+    // motherbore probe: a sensing line down the middle to a glowing node in the hot zone
+    kit.flow([[x, -KICK, baseZ], [x, -probeY, baseZ]], { color: PROBE, r: 0.17, spacing: 5, speed: 14, dir: 1, base: 0.35, width: 0.16 });
+    const node = new THREE.Mesh(new THREE.SphereGeometry(0.95, 14, 10), kit.emit(PROBE, 2.4));
+    kit.track(node.geometry);
+    node.position.set(x, -probeY, baseZ);
+    g.add(node);
+    const nodeGlow = new THREE.Mesh(new THREE.SphereGeometry(4.2, 14, 10), kit.glow(PROBE, 0.16));
+    kit.track(nodeGlow.geometry);
+    nodeGlow.position.copy(node.position);
+    g.add(nodeGlow);
+    [22, 15, 8.5].forEach((r, i) => {
+      const hz = new THREE.Mesh(new THREE.TorusGeometry(r, 0.11, 6, 64), kit.emit(TEAL, 1.0 - i * 0.18));
+      kit.track(hz.geometry);
+      hz.rotation.x = Math.PI / 2;
+      hz.position.set(x, -probeY, baseZ);
+      g.add(hz);
+    });
+    for (let k = 1; k <= 6; k += 1) {
+      const n = new THREE.Mesh(new THREE.SphereGeometry(0.3, 10, 8), kit.emit(COL.ledHi, 2));
       kit.track(n.geometry);
-      n.position.set(x, -42 - k * 19, baseZ);
+      n.position.set(x, -KICK - k * ((probeY - KICK) / 7), baseZ);
       g.add(n);
     }
-    // ten branches
-    for (let i = 0; i < 10; i += 1) {
-      const a = (i / 10) * Math.PI * 2 + (sx > 0 ? 0.3 : 0);
-      const out = new THREE.Vector3(Math.sin(a), 0, Math.cos(a));
-      const d0 = slotDepth(i);
-      const reach = 11 + (i % 5) * 2.6 + R() * 2.5;
-      const endY = DEPTH - 8 - (i % 3) * 6;
-      const start = new THREE.Vector3(x, -d0, baseZ);
-      const pts = [
-        start.clone(),
-        start.clone().addScaledVector(out, 1.8).add(new THREE.Vector3(0, -6, 0)),
-        start.clone().addScaledVector(out, reach * 0.55).add(new THREE.Vector3(0, -(endY - d0) * 0.28 - 8, 0)),
-        start.clone().addScaledVector(out, reach * 0.88).add(new THREE.Vector3(0, -(endY - d0) * 0.66, 0)),
-        start.clone().addScaledVector(out, reach).setY(-endY),
-      ];
+    // ten branches in a fountain: a tight bundle that peels off in curves, the inner ones running deepest
+    PAD_BRANCHES.forEach(b => {
+      const dir = new THREE.Vector3(Math.cos(b.az), 0, Math.sin(b.az));
+      const depthTo = KICK + ((b.tip - PAD.casing) / (1 - PAD.casing)) * (DEPTH - KICK);
+      const pts = branchProfile(b, 26).map(([u, s]) => {
+        const lat = b.reach * u * MAXR + RING * 0.7 * (1 - Math.min(1, s / 0.22));
+        return new THREE.Vector3(x + dir.x * lat, -(KICK + s * (depthTo - KICK)), baseZ + dir.z * lat * 0.9);
+      });
       const curve = new THREE.CatmullRomCurve3(pts, false, "centripetal");
-      const inj = injection.has(i);
-      kit.flow(curve, { color: inj ? COL.led : COL.magma, r: 0.34, spacing: 15, speed: 13, dir: inj ? 1 : -1, base: 0.55, width: 0.2, seg: 0.8, radial: 6 });
-      kit.flow(curve, { color: inj ? COL.ledHi : COL.amber, r: 1.0, spacing: 15, speed: 13, dir: inj ? 1 : -1, base: 0.08, width: 0.2, alpha: 0.55, seg: 0.5, radial: 5 });
-      // heated rock glow where the branch ends
+      const inj = b.role === "injection";
+      // beaded pulses on a thin bright core, with a soft halo around it
+      kit.flow(curve, { color: inj ? COL.led : COL.magma, r: 0.3, spacing: 5.5, speed: 12, dir: inj ? 1 : -1, base: 0.3, width: 0.14, seg: 0.9, radial: 6 });
+      kit.flow(curve, { color: inj ? COL.ledHi : COL.amber, r: 0.85, spacing: 11, speed: 12, dir: inj ? 1 : -1, base: 0.06, width: 0.2, alpha: 0.5, seg: 0.5, radial: 5 });
       const end = pts[pts.length - 1];
-      const h = new THREE.Mesh(new THREE.SphereGeometry(5.5, 14, 10), kit.glow(inj ? COL.led : COL.magma, 0.1));
+      const tip = new THREE.Mesh(new THREE.SphereGeometry(0.7, 10, 8), kit.emit(inj ? COL.led : COL.magma, 2.0));
+      kit.track(tip.geometry);
+      tip.position.copy(end);
+      g.add(tip);
+      const h = new THREE.Mesh(new THREE.SphereGeometry(5, 12, 10), kit.glow(inj ? COL.led : COL.magma, 0.09));
       kit.track(h.geometry);
       h.position.copy(end);
       g.add(h);
-    }
+    });
     // wellhead cap seen from below
     kit.cyl(1.6, 1.6, 0.4, kit.darkSteel, x, 0.2, baseZ, g, 20);
     anchor(A, x, -22, baseZ + 3, COL.warm, 1.5);
     anchor(A, x, -100, baseZ + 3, COL.amber, 1.7);
     anchor(A, x, -165, baseZ + 3, COL.magma, 2.0);
+    const ringSign = kit.sign("RING OF 10 SLOTS", "#fff1dc", GOLD, 9);
+    ringSign.position.set(x + sx * 14, -KICK + 3, baseZ + 2);
+    g.add(ringSign);
   }
   // labels
-  const sa = kit.sign("4 INJECTION · 6 PRODUCTION", "#fff1dc", COL.amber, 12);
+  const sa = kit.sign("6 PRODUCTION · 4 INJECTION", "#fff1dc", COL.amber, 12);
   sa.position.set(-25, -56, baseZ + 15);
   g.add(sa);
-  const sb = kit.sign("PER WELL · 10 BRANCHES", "#fff1dc", COL.magma, 11);
+  const sb = kit.sign("ONE PAD PER WELL · 4 → 10 BRANCHES", "#fff1dc", COL.magma, 14);
   sb.position.set(25, -56, baseZ + 15);
   g.add(sb);
+  const sc = kit.sign("MOTHERBORE PROBE · ACOUSTIC · THERMAL · EM", "#d8fbff", PROBE, 15);
+  sc.position.set(0, -DEPTH + 22, baseZ + 14);
+  g.add(sc);
   kit.dust(kit.lowPower ? 200 : 520, [-70, -DEPTH, baseZ - 40], [70, -2, baseZ + 40], 0.22, "#ffb890", 0.45);
 }

@@ -11,9 +11,9 @@ const CampusScene = lazy(() => import("./CampusScene"));
 type Mode = "dtf" | "compare" | "xerxes";
 
 const CAPTIONS: Record<Mode, string> = {
-  dtf: "DTF — one re-entered well and one two-level building: compute on Level 2, power and cooling on Level 1. Ten branches, robot-serviced, lights off.",
-  compare: "Same principle, different scale. One well against twelve. Ten branches against 120.",
-  xerxes: "XERXES — a hub and six pods over twelve wells, two under every pod, fifty metres apart. Ten branches a well: 120 in all.",
+  dtf: "DTF — one re-entered well and one two-level building: compute on Level 2, power and cooling on Level 1. Four branches open, six reserve slots sealed. Robot-serviced, lights off.",
+  compare: "Same principle, different scale. One well pad against twelve. Four to ten branches against 120.",
+  xerxes: "XERXES — a hub and six pods over twelve well pads, two under every pod, fifty metres apart. Ten branches a pad: 120 in all.",
 };
 
 /** Key to the 3D model, per view. Colours match what is drawn in the scene. */
@@ -21,7 +21,8 @@ const LEGEND: Record<Mode, { c: string; dashed?: boolean; t: string }[]> = {
   dtf: [
     { c: "#3d8bff", t: "Level 2: two compute modules under a robotic gantry" },
     { c: "#ff7a3a", t: "Level 1: ORC-DC, BESS, absorption cooling, stimulation" },
-    { c: "#ff9055", t: "One re-entered well: ten branches off a 10-slot neck" },
+    { c: "#e9b949", t: "One re-entered well: four open branches, six reserve slots sealed (gold)" },
+    { c: "#46e3ff", t: "Motherbore probe down the middle" },
   ],
   compare: [
     { c: "#ffffff", t: "Left: DTF, one well pad" },
@@ -30,13 +31,14 @@ const LEGEND: Record<Mode, { c: string; dashed?: boolean; t: string }[]> = {
   xerxes: [
     { c: "#ff5a1f", t: "Production branches carry heat up" },
     { c: "#3d8bff", t: "Injection branches carry fluid down" },
+    { c: "#46e3ff", t: "Motherbore probe: acoustic, thermal, EM" },
     { c: "#8fd0ff", t: "Wind and cold gathered by the nano-shell roof" },
   ],
 };
 
 const SCALE_BARS = [
   { label: "Wells", a: 100 / 12, b: 100, aText: "1", bText: "12" },
-  { label: "Branches", a: (10 / 120) * 100, b: 100, aText: "10", bText: "120" },
+  { label: "Branches", a: (10 / 120) * 100, b: 100, aText: "4 → 10", bText: "120" },
 ];
 
 function ScaleBar({ label, a, b, aText, bText }: { label: string; a: number; b: number; aText: string; bText: string }) {

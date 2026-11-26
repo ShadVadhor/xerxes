@@ -6,19 +6,18 @@ import { gsap, prefersReducedMotion, ScrollTrigger, scrollToId } from "@/lib/smo
 import EmberField from "./EmberField";
 import { Arrow, CountUp } from "./ui";
 
-const LOOP = 22.1;
+const LOOP = 22.25;
 
 /** Position of the depth marker (0 = surface, 1 = reservoir) for a given film time */
 function gaugeAt(t: number) {
-  if (t < 6.2) return 0.04 + (t / 6.2) * 0.04;
-  if (t < 18.2) {
-    const k = (t - 6.2) / (18.2 - 6.2);
+  if (t < 6.0) return 0.04 + (t / 6.0) * 0.04;
+  if (t < 19.0) {
+    const k = (t - 6.0) / (19.0 - 6.0);
     const e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
     return 0.08 + e * 0.9;
   }
   return 0.0;
 }
-
 export default function Hero({ ready }: { ready: boolean }) {
   const root = useRef<HTMLElement>(null);
   const media = useRef<HTMLDivElement>(null);
@@ -50,7 +49,7 @@ export default function Hero({ ready }: { ready: boolean }) {
       if (idx !== current) {
         current = idx;
         setPhase(idx);
-        intensity.current = idx === 1 || idx === 2 ? 1 : idx === 0 ? 0.45 : 0.25;
+        intensity.current = idx >= 1 && idx <= 3 ? 1 : idx === 0 ? 0.45 : 0.25;
       }
       HERO_PHASES.forEach((p, i) => {
         const el = bars.current[i];
@@ -171,7 +170,7 @@ export default function Hero({ ready }: { ready: boolean }) {
       {/* depth gauge */}
       <div aria-hidden className="pointer-events-none absolute right-5 top-[42%] hidden h-[30vh] -translate-y-1/2 md:block lg:right-8">
         <div className="mono absolute -top-6 right-0 text-[0.58rem] tracking-[0.25em] text-white/50">
-          {phase === 3 ? "COMPUTE" : "SURFACE"}
+          {phase === 4 ? "COMPUTE" : "SURFACE"}
         </div>
         <div className="relative h-full w-10">
           <div className="absolute right-0 top-0 h-full w-px bg-white/20" />
@@ -187,7 +186,7 @@ export default function Hero({ ready }: { ready: boolean }) {
               className="absolute right-0 top-0 flex -translate-y-1/2 items-center gap-2 transition-transform duration-700"
               style={{ transitionTimingFunction: "cubic-bezier(.2,.8,.2,1)" }}
             >
-              <span className="mono text-[0.58rem] tracking-[0.2em] text-magma-hi">{phase === 1 || phase === 2 ? "DEPTH" : ""}</span>
+              <span className="mono text-[0.58rem] tracking-[0.2em] text-magma-hi">{phase >= 1 && phase <= 3 ? "DEPTH" : ""}</span>
               <span className="h-[2px] w-6 bg-magma shadow-[0_0_14px_#ff5a1f]" />
             </div>
           </div>
