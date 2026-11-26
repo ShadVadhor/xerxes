@@ -20,4 +20,7 @@ export const A = {
   dtfPad: "/manus-storage/dtf_pad_v2_f367a96c.webp",
   dtfRoom: "/manus-storage/dtf_room_v2_f82744e2.webp",
   shell: "/manus-storage/xerxes_shell_d1cec2de.webp",
+  walkHall: "/manus-storage/walk_hall_eeb8e00e.webp",
+  walkCampus: "/manus-storage/walk_campus_e7b0765b.webp",
+  walkRack: "/manus-storage/walk_rack_91007e95.webp",
 } as const;

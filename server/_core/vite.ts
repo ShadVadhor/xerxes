@@ -5,6 +5,7 @@ import { nanoid } from "nanoid";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import viteConfig from "../../vite.config";
+import { applyRouteHead } from "./routeHead";
 
 export async function setupVite(app: Express, server: Server) {
   const serverOptions = {
@@ -39,7 +40,7 @@ export async function setupVite(app: Express, server: Server) {
         `src="/src/main.tsx"`,
         `src="/src/main.tsx?v=${nanoid()}"`
       );
-      const page = await vite.transformIndexHtml(url, template);
+      const page = applyRouteHead(await vite.transformIndexHtml(url, template), url);
       res.status(200).set({ "Content-Type": "text/html" }).end(page);
     } catch (e) {
       vite.ssrFixStacktrace(e as Error);
@@ -67,7 +68,13 @@ export function serveStatic(app: Express) {
   });
 
   // fall through to index.html if the file doesn't exist
-  app.use("*", (_req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
+  const indexFile = path.resolve(distPath, "index.html");
+  app.use("*", (req, res) => {
+    try {
+      const html = applyRouteHead(fs.readFileSync(indexFile, "utf-8"), req.originalUrl);
+      res.status(200).set({ "Content-Type": "text/html; charset=utf-8" }).end(html);
+    } catch {
+      res.sendFile(indexFile);
+    }
   });
 }

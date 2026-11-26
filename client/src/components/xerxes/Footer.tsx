@@ -1,4 +1,5 @@
 import { ArrowUpRight } from "lucide-react";
+import { Link } from "wouter";
 import { ACCESS, CHAPTERS, COMPANY, NAV, SITE } from "@/lib/content";
 import { scrollToId } from "@/lib/smooth";
 import { Logo } from "./ui";
@@ -40,6 +41,11 @@ export default function Footer() {
                   </a>
                 </li>
               ))}
+              <li>
+                <Link href="/walkthrough" className="group inline-flex items-center gap-2 text-[0.85rem] text-magma-hi transition-colors hover:text-white focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-magma-hi">
+                  3D walkthrough<ArrowUpRight size={12} strokeWidth={1} aria-hidden="true" />
+                </Link>
+              </li>
             </ul>
           </nav>
           <div className="md:justify-self-end">

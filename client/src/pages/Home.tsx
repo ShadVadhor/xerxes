@@ -16,7 +16,8 @@ import Nav from "@/components/xerxes/Nav";
 import Preloader, { shouldPlayIntro } from "@/components/xerxes/Preloader";
 import Programme from "@/components/xerxes/Programme";
 import Sovereignty from "@/components/xerxes/Sovereignty";
-import { gsap, prefersReducedMotion, ScrollTrigger, startSmooth } from "@/lib/smooth";
+import WalkTeaser from "@/components/xerxes/WalkTeaser";
+import { gsap, prefersReducedMotion, ScrollTrigger, scrollToId, startSmooth } from "@/lib/smooth";
 
 export default function Home() {
   const [intro] = useState(() => shouldPlayIntro());
@@ -24,6 +25,14 @@ export default function Home() {
 
   // smooth scrolling (Lenis ↔ ScrollTrigger)
   useEffect(() => startSmooth(), []);
+  // arriving from another route with a hash (for example /#contact from the walkthrough)
+  useEffect(() => {
+    if (!ready) return;
+    const id = window.location.hash.replace(/^#/, "");
+    if (!id) return;
+    const t = window.setTimeout(() => scrollToId(id), 700);
+    return () => window.clearTimeout(t);
+  }, [ready]);
 
   // global entrance reveals for every [data-reveal] element
   useEffect(() => {
@@ -92,6 +101,7 @@ export default function Home() {
         <Models />
         <Descent />
         <DataHall />
+        <WalkTeaser />
         <Gms />
         <Impact />
         <Sovereignty />

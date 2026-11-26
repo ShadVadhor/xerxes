@@ -519,3 +519,8 @@ html.lenis body {
   stroke-dasharray: 4 16;
   animation: flow-dash 2.6s linear infinite reverse;
 }
+
+/* ── 3D walkthrough hotspots ── */
+.hs-card { position: absolute; top: calc(100% + 0.9rem); left: 50%; width: 13.5rem; transform: translateX(-50%); }
+[data-hs][data-side="l"] .hs-card { left: auto; right: -0.6rem; transform: none; }
+[data-hs][data-side="r"] .hs-card { left: -0.6rem; transform: none; }

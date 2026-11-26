@@ -26,4 +26,11 @@ Left rail = chapter / depth gauge. Smooth Lenis scrolling, GSAP ScrollTrigger, T
 - [x] Geothermal geometry: 6 pods × 2 wells = 12 wells × 10 branches = 120, 5 km, 50 m spacing (as given by the user; not independently verified). No campus-total MW stated.
 - [x] Nanocomposite shell roof visual + copy (performance figures deliberately not published).
 - [x] Footer links to darktokenfactory.com and geios.energy; SEO head + crawler fallback updated.
+## Round 3
+- [x] Hero film v3: four phases (surface, twelve wells, 120 branches, compute); no city. AI-generated and schematic.
+- [x] DTF redesign for "02 — Two models, one idea" from the DTF pitch-deck DESIGN only (anatomy, branch ladder, pad/room renders). No financials, revenue, raise or investor data from the confidential deck are on the site.
+- [x] `/walkthrough`: detailed interactive 3D walkthrough of one Xerxes pod (Three.js, lazy-loaded): campus arrival, hub digital twin, four rings, rack, hall, NanoVault, cooling, energy bay (two wellheads 50 m apart), subsurface cut (120 branches, 5 km), biogas bus, nano-shell roof. Guided tour + free explore (WASD / drag), minimap, depth gauge, hotspots, mobile layout, no-WebGL fallback, deep links (`?stop=N`). Figures are white-paper design targets; schematic scale.
+- [x] Entry points: nav link (desktop + mobile menu), Home teaser band after "Inside the data hall", footer link. "Request access" returns to `/#contact` with the Xerxes interest pre-selected.
+- [x] Route head tags for `/walkthrough` set client-side and server-side (title, description, canonical, og, twitter); `manus-routes.json` lists the route.
+- [ ] Open questions for the owner: campus-total MW (white paper Phase 1 = 5 wells / 250 MW vs 12 wells), whether to gate parts of the walkthrough detail, DTF branch count (deck 10 vs site 4 to 10).
 - [ ] Publishing is the user's step (not published).
