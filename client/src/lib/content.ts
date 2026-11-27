@@ -75,6 +75,24 @@ export const MODELS = {
   intro:
     "The Dark Token Factory (DTF) is the small model: a prefabricated, two-level building that runs dark beside one re-entered well and lives off its heat. Xerxes is the Goliath: a hub and six pods over twelve wells and 120 directional branches, five kilometres deep. Same principle. Take the data center to the power. Radically different scale.",
   viewerNote: "Illustrative massing — not to engineering scale",
+  film: {
+    label: "Explainer film · 7:13",
+    title: "Xerxes, the future of data centers:",
+    titleAccent: "totally autonomous.",
+    body:
+      "Seven minutes, from five kilometres down to the last rack. A calm, narrated walk through how a geothermal-embedded, off-grid, carbon-negative campus is built layer by layer, and why it is designed to run itself under human oversight rather than a floor crew.",
+    note: "Concept visualisation · narrated, with music and English subtitles · figures are design targets or modelled values",
+    chapters: [
+      { t: 44, label: "The heat below" },
+      { t: 107, label: "The circle at the center" },
+      { t: 144, label: "Layer by layer" },
+      { t: 196, label: "Inside the halls" },
+      { t: 249, label: "The shell" },
+      { t: 271, label: "The complete machine" },
+      { t: 303, label: "Autonomy" },
+      { t: 361, label: "What makes us unique" },
+    ],
+  },
   toggles: [
     { id: "dtf", label: "DTF" },
     { id: "compare", label: "Compare" },

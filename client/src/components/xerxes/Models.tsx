@@ -4,6 +4,7 @@ import { MODELS } from "@/lib/content";
 import { requestContact } from "@/lib/interest";
 import { gsap, prefersReducedMotion } from "@/lib/smooth";
 import DtfAnatomy from "./DtfAnatomy";
+import ExplainerFilm from "./ExplainerFilm";
 import { Arrow, Eyebrow, LazyMount, SceneBoundary } from "./ui";
 
 const CampusScene = lazy(() => import("./CampusScene"));
@@ -108,6 +109,9 @@ export default function Models() {
             {MODELS.intro}
           </p>
         </div>
+
+        {/* the seven-minute explainer */}
+        <ExplainerFilm />
 
         {/* interactive viewer */}
         <div
