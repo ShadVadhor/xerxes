@@ -68,6 +68,23 @@ export async function notifyOwner(
 ): Promise<boolean> {
   const { title, content } = validatePayload(payload);
 
+  // Outside the Manus platform (for example on Vercel) a webhook can carry the message instead:
+  // Slack, Discord, Make, Zapier or any URL that accepts a JSON POST.
+  const webhook = process.env.INQUIRY_WEBHOOK_URL;
+  if (webhook && !ENV.forgeApiUrl) {
+    try {
+      const text = `${title}\n\n${content}`;
+      const response = await fetch(webhook, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ title, content: text.slice(0, 1900), text: text.slice(0, 3000) }),
+      });
+      return response.ok;
+    } catch {
+      return false;
+    }
+  }
+
   if (!ENV.forgeApiUrl) {
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",

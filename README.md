@@ -43,7 +43,21 @@ The server reads `DATABASE_URL` (MySQL) and the platform variables `MANUS_API_UR
 
 ## Media
 
-Images, 3D renders and films (including the explainer and campus films) are not stored in this repository. They are referenced in `client/src/lib/assets.ts` as `/manus-storage/...` paths, which are served by the Manus hosting platform. To host the site elsewhere, copy those files to your own storage or CDN and update the paths in `assets.ts`.
+Images, 3D renders and the two films are referenced in `client/src/lib/assets.ts` as `/manus-storage/<name>` paths. In this GitHub repository the files themselves are in `client/public/manus-storage/` (about 130 MB, including the 82 MB explainer film and the 45 MB campus film), so every path resolves on any static host without code changes. (The Manus-managed project serves the same files from its own storage and keeps them out of its Git history.)
+
+## Deploy to Vercel
+
+1. In Vercel choose **Add New > Project** and import `ShadVadhor/xerxes`. `vercel.json` already sets the install and build commands (`pnpm build:vercel`); leave the framework preset on **Other** and do not set an output directory.
+2. Optional, for the contact and access forms, add environment variables under **Settings > Environment Variables**:
+   - `DATABASE_URL`: a MySQL database (TiDB Cloud, PlanetScale, or any MySQL 8 host). Create the table once from your computer with `pnpm db:migrate`.
+   - `INQUIRY_WEBHOOK_URL`: a Slack or Discord incoming webhook, a Make or Zapier hook, or any URL that accepts a JSON POST; each new inquiry is sent there.
+
+   With neither set the site still works, and the form tells visitors to email `contact@geios.energy`.
+3. Deploy. Add the domain (for example `www.xerxes.nexus`) under **Settings > Domains**.
+
+`pnpm build:vercel` (`scripts/vercel-build.mjs`) runs the Vite build and writes the Vercel Build Output: the static site, the API (`/api/trpc`, bundled from `server/vercel.ts`) and the routes (single-page fallback, long cache for hashed assets). `.env.example` lists the variables.
+
+To run the production build locally: `pnpm build && pnpm start`.
 
 ## Platform notes
 
