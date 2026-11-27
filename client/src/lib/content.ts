@@ -52,13 +52,13 @@ export const HERO_TELEMETRY = [
   { value: 1.05, decimals: 2, unit: "", label: "Design PUE" },
   { value: 150, decimals: 0, unit: "kW", label: "Per rack" },
   { value: 120, decimals: 0, unit: "", label: "Geothermal branches" },
-  { value: 0, decimals: 0, unit: "L", label: "Water for cooling" },
+  { value: 25, decimals: 0, unit: "%", label: "Water vs conventional DC" },
 ];
 
 export const MANIFESTO = {
   eyebrow: "01 — The premise",
   text:
-    "Every other data center is a tenant of someone else's grid. Xerxes is its own power plant: a campus built over twelve geothermal wells and 120 directional branches, five kilometres deep, turning the heat of the earth directly into high-density AI compute. No grid. No water. No carbon. Just intelligence, at scale.",
+    "Every other data center is a tenant of someone else's grid. Xerxes is its own power plant: a campus built over twelve geothermal wells and 120 directional branches, five kilometres deep, turning the heat of the earth directly into high-density AI compute. No grid. A quarter of the water. No carbon. Just intelligence, at scale.",
   stats: [
     { value: 100, suffix: "%", label: "Carbon negative", sub: "by design" },
     { value: 10, suffix: "×", label: "Energy efficiency", sub: "vs. conventional" },
@@ -290,7 +290,7 @@ export const HALL = {
     {
       key: "cooling",
       title: "CO₂ cooling gallery",
-      caption: "Kaigen closed-loop CO₂ cooling. No water. No compromise.",
+      caption: "Kaigen sealed nano-CO₂ loop. No water in the primary circuit.",
     },
     {
       key: "rack",
@@ -319,7 +319,7 @@ export const SHELL = {
   steps: [
     { n: "01", t: "Capture", d: "A nanocomposite shell gathers wind and cold from the air around the campus.", tone: "cold" },
     { n: "02", t: "Transfer", d: "That cooling potential is passed to the chillers instead of being generated from scratch.", tone: "cold" },
-    { n: "03", t: "Cool", d: "Closed-loop CO₂ cooling carries heat out of 150 kW racks. No water is evaporated.", tone: "cold" },
+    { n: "03", t: "Cool", d: "A sealed nano-CO₂ loop carries heat out of 150 kW racks. Water stays in the secondary loop: about 25% of a conventional site, 15% with liquid cooling.", tone: "cold" },
     { n: "04", t: "Recover", d: "Rejected heat is captured and reused on the campus, not thrown away.", tone: "heat" },
   ],
   alt: "Roof of a Xerxes pod: a nanocomposite lattice shell gathering wind and cold at dawn",
@@ -384,9 +384,9 @@ export const GMS = {
 export const IMPACT = {
   eyebrow: "06 — Impact",
   title: "Carbon negative.",
-  titleAccent: "Water-free.",
+  titleAccent: "75% less water.",
   intro:
-    "A conventional AI campus draws on the grid and boils away water. Xerxes does neither: closed-loop cooling, a roof that captures wind and cold, and heat that is recovered, not rejected. The comparison below is modelled for a facility of equal scale.",
+    "A conventional AI campus draws on the grid and evaporates water by the billion litres. Xerxes makes its own power and keeps water out of the primary loop: a sealed nano-CO₂ circuit cools the racks, and water is used only in the secondary loop. That is about 25% of a conventional facility with conventional cooling, and about 15% with liquid or immersion cooling. The comparison below is modelled for a facility of equal scale.",
   bars: [
     {
       label: "CO₂ per year",
@@ -396,7 +396,9 @@ export const IMPACT = {
     {
       label: "Water per year",
       industry: { text: "50 B litres", pct: 100 },
-      xerxes: { text: "0 litres", pct: 0 },
+      xerxes: { text: "≈ 12.5 B litres · 25%", pct: 25 },
+      alt: { label: "Xerxes · liquid or immersion cooling", text: "≈ 7.5 B litres · 15%", pct: 15 },
+      note: "Water is used only in the secondary loop. It never enters the primary nano-CO₂ circuit, where it could degrade the pipes.",
     },
     {
       label: "Power usage effectiveness",
@@ -406,7 +408,7 @@ export const IMPACT = {
   ],
   equivalences: [
     { value: "72,000", unit: "t CO₂", label: "eliminated every year — roughly 15,000 cars off the road" },
-    { value: "30", unit: "B litres", label: "of water saved every year — a city of 80,000 people" },
+    { value: "75", unit: "% less water", label: "than a conventional AI campus with conventional cooling, and up to 85% less with liquid or immersion cooling" },
   ],
   footnote:
     "Design targets and modelled figures per White Paper V-1F (02 May 2025). Industry baselines are company estimates. Not audited operating data.",
@@ -462,22 +464,58 @@ export const COMPANY = {
   vision: "To become the world's dominant force in sovereign, green AI computing.",
   entities: [
     {
+      id: "geios",
       name: "GEIOS Technologies",
       year: "2019",
+      yearNote: "Incheon · the heat source",
       place: "Incheon, Korea",
       role: "Pioneers of Enhanced Quantum Geothermal (EQG).",
+      detail: {
+        kicker: "The heat source",
+        summary:
+          "GEIOS brings the earth to the machine: Enhanced Quantum Geothermal wells, nanofoam stimulation and the AI GMS that runs the well field. Xerxes is developed by the XERXES Division of GEIOS.",
+        timeline: [
+          { when: "2019", what: "GEIOS Technologies, Incheon, Korea", body: "Pioneers of Enhanced Quantum Geothermal (EQG)." },
+          { when: "2023", what: "Partnership with Aiden Digital Labs on Xerxes", body: "AI infrastructure and high-performance computing join the geothermal campus." },
+          { when: "End of 2025", what: "Partnership extended to the DTF", body: "The Dark Token Factory, the small model, joins the programme." },
+        ],
+        brings: ["EQG wells: 12 wells, 120 branches, ~5 km", "Nanofoam stimulation", "AI GMS: LLM + LAM through SCADA"],
+      },
     },
     {
-      name: "Aiden Digital Labs",
-      year: "2020",
-      place: "London, UK",
-      role: "AI infrastructure and high-performance computing. Designers of the Dark Token Factory data center.",
-    },
-    {
+      id: "kaigen",
       name: "Kaigen Technologies",
       year: "2021",
+      yearNote: "Casper · cooling and capture",
       place: "Casper, Wyoming, USA",
       role: "CO₂ cooling and carbon capture.",
+      detail: {
+        kicker: "The cold side",
+        summary:
+          "Kaigen carries the heat away and the carbon down: the sealed nano-CO₂ cooling loop that water never enters, and the carbon capture that makes the campus carbon negative by design.",
+        timeline: [
+          { when: "2021", what: "Kaigen Technologies, Casper, Wyoming", body: "CO₂ cooling and carbon capture." },
+        ],
+        brings: ["Sealed nano-CO₂ primary cooling loop", "Water only in the secondary loop", "Carbon capture"],
+      },
+    },
+    {
+      id: "aiden",
+      name: "Aiden Digital Labs",
+      year: "2023",
+      yearNote: "GEIOS partner · Xerxes 2023 · DTF end 2025",
+      place: "London, UK",
+      role: "AI infrastructure and high-performance computing. Designers of the Dark Token Factory data center.",
+      detail: {
+        kicker: "The compute partner",
+        summary:
+          "Aiden Digital Labs designs the AI infrastructure that the geothermal heat feeds. Its partnership with GEIOS began in 2023 with Xerxes and extended to the Dark Token Factory at the end of 2025.",
+        timeline: [
+          { when: "2023", what: "Partnership with GEIOS on Xerxes", body: "Aiden joins GEIOS on Xerxes, the Goliath: AI infrastructure and high-performance computing for the geothermal campus." },
+          { when: "End of 2025", what: "Partnership extended to the DTF", body: "The partnership extends to the Dark Token Factory, the small model. Aiden designs the DTF data center." },
+        ],
+        brings: ["AI infrastructure and HPC design", "Dark Token Factory data center design", "GEIOS partner · Xerxes 2023 · DTF end 2025"],
+      },
     },
   ],
   leaders: [
@@ -565,7 +603,7 @@ export const MARQUEE = [
   "NANO-SHELL ROOF",
   "1.5 EXAFLOPS",
   "PUE 1.05",
-  "ZERO WATER",
+  "75% LESS WATER",
   "150 kW / RACK",
 ];
 
@@ -588,4 +626,366 @@ export const PAD_SECTION = {
     { value: "56", unit: "%", label: "better heat transfer" },
   ],
   footnote: "Schematic, not to scale. Branch depths are fractions of total depth. 50 MW per well is a modelled design value, not audited operating data.",
+};
+
+
+/* ---------------------------------------------------------------------------------------------
+ * "Six rooms. One machine." pop-ups. Marker x / y are percentages of the render.
+ * ------------------------------------------------------------------------------------------- */
+export type RoomDiagram = "rings" | "loop" | "pad";
+export const ROOMS: Record<
+  string,
+  {
+    zone: string;
+    accent: string;
+    body: string;
+    parts: { x: number; y: number; t: string; d: string }[];
+    figures: { v: string; l: string }[];
+    stop: number;
+    stopLabel: string;
+    diagram?: RoomDiagram;
+    diagramLabel?: string;
+    twinLink?: boolean;
+  }
+> = {
+  hub: {
+    zone: "Hub · Core",
+    accent: "The core that runs the campus.",
+    body:
+      "The hub sits at the centre of the torus. It holds the AI control layer and the live digital twin, and four separate infrastructure rings that interlace power and cooling out to six production pods along ribbed bridges. Two rings are active; two wait on automated standby.",
+    parts: [
+      { x: 50, y: 40, t: "Central court", d: "The AI control layer and the live digital twin of every pod, ring and well." },
+      { x: 29, y: 61, t: "Ring corridor", d: "Four separate rings route power and cooling around the core: two active, two on standby." },
+      { x: 12, y: 36, t: "Bridge to a pod", d: "Each of the six pods is joined by a ribbed bridge carrying power, cooling and fabric." },
+      { x: 89, y: 12, t: "Production pod", d: "Compute, storage, cooling and two wellheads under a nano-composite lattice shell." },
+    ],
+    figures: [
+      { v: "4", l: "Separate rings · 2 active + 2 standby" },
+      { v: "6", l: "Production pods" },
+      { v: "Tier IV", l: "Design target, not certified" },
+    ],
+    stop: 1,
+    stopLabel: "Walk the hub in 3D",
+    diagram: "rings",
+    diagramLabel: "Ring diagram",
+  },
+  hall: {
+    zone: "Pod · Compute hall",
+    accent: "Row after row, one fabric.",
+    body:
+      "Inside each pod, contained cold aisles follow the radial layout. Racks are liquid cooled at up to 150 kW each, overhead headers carry the sealed nano-CO₂ loop, and a pod registers itself on the fabric the moment it comes online.",
+    parts: [
+      { x: 50, y: 74, t: "Contained cold aisle", d: "Rack fronts face each other; the backs open onto the hot aisle." },
+      { x: 40, y: 13, t: "Overhead CO₂ headers", d: "The sealed primary loop runs above every row. No water inside it." },
+      { x: 31, y: 46, t: "High-density rack row", d: "Up to 150 kW per rack, built for next-generation GPUs, TPUs and NPUs." },
+      { x: 86, y: 17, t: "Power busway", d: "An overhead busway feeds each row from the pod's isolated bus." },
+    ],
+    figures: [
+      { v: "1.05", l: "Design PUE" },
+      { v: "81%", l: "Site power to compute · design" },
+      { v: "1.5 EF", l: "Per site · up to" },
+    ],
+    stop: 4,
+    stopLabel: "Walk the compute hall in 3D",
+  },
+  cooling: {
+    zone: "Pod · Cooling plant",
+    accent: "A quarter of the water.",
+    body:
+      "Heat leaves the racks in a sealed nano-CO₂ primary loop. Water never enters it, because water could degrade the pipes of the nano-CO₂ circuit. Water is used only in the secondary loop: about 25% of a conventional data center with conventional cooling, and about 15% with liquid or immersion cooling. Waste heat drives lithium-bromide absorption chillers, and the roof shell adds wind and cold.",
+    parts: [
+      { x: 78, y: 62, t: "Absorption chiller", d: "A lithium-bromide cycle driven by waste heat. No compressors." },
+      { x: 88, y: 15, t: "Primary nano-CO₂ header", d: "The sealed loop from the racks. Water never enters it." },
+      { x: 12, y: 70, t: "Secondary loop", d: "The only place water is used: ≈ 25% of a conventional site, ≈ 15% with liquid or immersion cooling." },
+      { x: 50, y: 47, t: "Shell intake", d: "Wind and cold captured by the roof shell feed the loop." },
+    ],
+    figures: [
+      { v: "≈ 25%", l: "Water vs conventional DC · conventional cooling" },
+      { v: "≈ 15%", l: "With liquid or immersion cooling" },
+      { v: "0 L", l: "Water in the primary nano-CO₂ loop" },
+    ],
+    stop: 6,
+    stopLabel: "Walk the cooling plant in 3D",
+    diagram: "loop",
+    diagramLabel: "Loop diagram",
+  },
+  rack: {
+    zone: "Pod · Rack",
+    accent: "Where the heat is made.",
+    body:
+      "Every rack is liquid cooled into the sealed nano-CO₂ loop. The compute layer is vendor-agnostic: NVIDIA Vera Rubin, next-generation AMD Instinct, advanced TPUs, NPUs and new high-density chips share one fabric.",
+    parts: [
+      { x: 51, y: 31, t: "Coolant return", d: "The warm side of the cold-plate loop, carrying heat toward the chillers." },
+      { x: 37, y: 37, t: "Accelerator tray", d: "High-density GPU, TPU or NPU sleds on a common memory stack." },
+      { x: 46, y: 22, t: "Fabric links", d: "≥ 80 GB/s per node, with redundant paths into the spine." },
+    ],
+    figures: [
+      { v: "150 kW", l: "Per rack · design" },
+      { v: "≥ 80 GB/s", l: "Per node fabric" },
+      { v: "0 L", l: "Water in the primary loop" },
+    ],
+    stop: 3,
+    stopLabel: "Walk the rack in 3D",
+  },
+  command: {
+    zone: "Hub · Command",
+    accent: "People supervise. AI GMS acts.",
+    body:
+      "Operators watch what the AI GMS sees: a Large Language Model reading SCADA and PLC telemetry, and a Large Action Model acting on pumps, valves and set-points in milliseconds. Every change is rehearsed on the digital twin first.",
+    parts: [
+      { x: 60, y: 50, t: "Subsurface model", d: "A live 3D model of the rock, branches and heat zones from the motherbore probes." },
+      { x: 80, y: 29, t: "Forecast wall", d: "Demand, storage, stability and cooling forecasts from the digital twin." },
+      { x: 20, y: 57, t: "Operator console", d: "People set policy and approve; the LAM executes within it." },
+    ],
+    figures: [
+      { v: "94.5%", l: "AI confidence · Phase 0 simulated" },
+      { v: "< 8%", l: "Parasitic load target" },
+      { v: "39.6%", l: "Opex reduction · simulated" },
+    ],
+    stop: 1,
+    stopLabel: "Walk the hub's twin in 3D",
+    twinLink: true,
+  },
+  wellpad: {
+    zone: "Pod · Wellpad",
+    accent: "Where the heat comes up.",
+    body:
+      "Each pod sits over two wellheads fifty metres apart. Below each one, a short copper casing reaches a ring of ten slots, and ten directional branches fan out into hotter rock toward five kilometres deep: six producing, four injecting. Heat becomes electricity right beside the well.",
+    parts: [
+      { x: 50, y: 54, t: "Wellhead", d: "One of twelve. Ten directional branches open below it." },
+      { x: 47, y: 66, t: "Ring of ten slots", d: "Four open on day one; six stay sealed in reserve until the pad grows." },
+      { x: 61, y: 57, t: "Hot and return lines", d: "Hot fluid out, cooled fluid back: one closed loop." },
+      { x: 72, y: 50, t: "Heat-to-electric skid", d: "Conversion beside the well keeps losses under 5% (design)." },
+    ],
+    figures: [
+      { v: "10", l: "Branches per well · 6 + 4" },
+      { v: "50 m", l: "Between wells" },
+      { v: "~5 km", l: "Deepest branches" },
+    ],
+    stop: 8,
+    stopLabel: "Walk the wellpad in 3D",
+    diagram: "pad",
+    diagramLabel: "Below ground",
+  },
+};
+export const ROOMS_NOTE = "Illustrative renders and schematics. Figures are design targets or modelled values (White Paper V-1F), not measured performance.";
+
+/* ---------------------------------------------------------------------------------------------
+ * Digital twin (AI GMS). Everything here is an illustrative simulation.
+ * ------------------------------------------------------------------------------------------- */
+export type TwinModel = "dtf" | "xerxes";
+export type TwinCap = "demand" | "storage" | "stability" | "cooling" | "maintenance";
+export type TwinAnchor =
+  | "pod2" | "pod5" | "hub" | "vault" | "ring" | "shell" | "well"
+  | "modA" | "modB" | "bess" | "bus" | "tanks" | "orc";
+type TwinScene = {
+  headline: string;
+  body: string;
+  chart: string;
+  kpis: { v: string; l: string }[];
+  log: [string, string][];
+  callouts: { at: TwinAnchor; text: string }[];
+};
+export const TWIN: {
+  eyebrow: string;
+  title: string;
+  accent: string;
+  intro: string;
+  badge: string;
+  models: Record<TwinModel, { name: string; kind: string; line: string }>;
+  caps: { id: TwinCap; n: string; t: string; short: string }[];
+  scenes: Record<TwinModel, Record<TwinCap, TwinScene>>;
+  footnote: string;
+} = {
+  eyebrow: "05 — Intelligence · Digital twin",
+  title: "A twin that sees",
+  accent: "tomorrow.",
+  intro:
+    "AI GMS keeps a live digital twin of every site, from a single DTF well pad to the full Xerxes campus. It reads SCADA telemetry, forecasts what the next hours will ask of the machine, and rehearses each action on the twin before it touches steel.",
+  badge: "Illustrative simulation · Phase 0",
+  models: {
+    dtf: { name: "DTF", kind: "The small model", line: "One well · one two-level building · 20 MWe" },
+    xerxes: { name: "XERXES", kind: "The Goliath", line: "Hub + six pods · 12 wells · 120 branches" },
+  },
+  caps: [
+    { id: "demand", n: "01", t: "Predict demand", short: "Forecast the load hours ahead" },
+    { id: "storage", n: "02", t: "Store power", short: "Charge before the peak" },
+    { id: "stability", n: "03", t: "Hold stability", short: "Absorb steps and faults" },
+    { id: "cooling", n: "04", t: "Tune cooling", short: "Cool ahead of the heat" },
+    { id: "maintenance", n: "05", t: "Prevent failure", short: "Fix it before it breaks" },
+  ],
+  scenes: {
+    xerxes: {
+      demand: {
+        headline: "Forecasts the next training wave.",
+        body: "The twin learns each pod's job mix and forecasts its load hours ahead, so the well field ramps before the racks do instead of chasing them.",
+        chart: "Campus compute load · % of capacity",
+        kpis: [
+          { v: "24 h", l: "Rolling forecast horizon" },
+          { v: "94.5%", l: "AI confidence · Phase 0" },
+          { v: "6", l: "Pods forecast one by one" },
+        ],
+        log: [
+          ["SCADA", "Pods 1–6 telemetry in · campus load 68%"],
+          ["LLM", "Training wave forecast at 18:00 · +22% for 5 h"],
+          ["LAM", "Ramp branch flow on pods 2 and 5 · ORC set-point +6%"],
+        ],
+        callouts: [
+          { at: "pod2", text: "Pod 2 · +22% at 18:00" },
+          { at: "pod5", text: "Pod 5 · steady" },
+        ],
+      },
+      storage: {
+        headline: "Banks heat before the peak.",
+        body: "The NanoVault is a thermal store. The twin charges it in quiet hours and draws it down through the peak, with up to seven days of ride-through if subsurface input stops. A biogas bus stands in for batteries.",
+        chart: "NanoVault thermal reserve · % full",
+        kpis: [
+          { v: "7 days", l: "NanoVault ride-through · design" },
+          { v: "0", l: "Battery UPS" },
+          { v: "< 15 s", l: "Biogas hot-standby start" },
+        ],
+        log: [
+          ["SCADA", "NanoVault reserve 61% · well input steady"],
+          ["LLM", "Peak in 4 h · charge to 85% beforehand"],
+          ["LAM", "Divert 9% of well heat to the vault · release at peak"],
+        ],
+        callouts: [{ at: "vault", text: "NanoVault · charging" }],
+      },
+      stability: {
+        headline: "Turns a fault into an event.",
+        body: "Four separate rings interlace power and cooling around the hub. When the twin sees a ring drift, the LAM moves load onto a standby ring in milliseconds, and the bus barely notices.",
+        chart: "Bus voltage deviation · %",
+        kpis: [
+          { v: "2 + 2", l: "Active + standby rings" },
+          { v: "12 ms", l: "Simulated ring transfer" },
+          { v: "Tier IV", l: "Design target, not certified" },
+        ],
+        log: [
+          ["SCADA", "Ring A voltage dip −3.1% · pod 4 feed"],
+          ["LLM", "Signature matches breaker fatigue · isolate ring A"],
+          ["LAM", "Transfer pod 4 to standby ring C · 12 ms"],
+        ],
+        callouts: [{ at: "ring", text: "Ring A → standby ring C" }],
+      },
+      cooling: {
+        headline: "Cools ahead of the heat.",
+        body: "Knowing when the load will rise, the twin pre-cools the nano-CO₂ loop and stages the absorption chillers before rack temperatures climb, drawing on the roof shell's wind and cold first.",
+        chart: "Rack inlet temperature · °C",
+        kpis: [
+          { v: "1.05", l: "Design PUE" },
+          { v: "150 kW", l: "Per rack · design" },
+          { v: "≈ 25%", l: "Water vs conventional · secondary loop" },
+        ],
+        log: [
+          ["SCADA", "Rack inlet 24.1 °C · shell intake 11 °C"],
+          ["LLM", "Load rise in 40 min · pre-cool the loop by 1.5 °C"],
+          ["LAM", "Open shell intake dampers · stage chiller 3"],
+        ],
+        callouts: [{ at: "shell", text: "Shell intake · wind and cold" }],
+      },
+      maintenance: {
+        headline: "Finds the fault weeks ahead.",
+        body: "Every pump, turbine, well, nanofluid line and heat exchanger has a health curve on the twin. When one bends, AI GMS books the repair into a quiet window and tests the fix on the twin first.",
+        chart: "Pump P-2B health index · days",
+        kpis: [
+          { v: "Weeks", l: "Predictive-maintenance horizon" },
+          { v: "5", l: "Asset classes · pumps to exchangers" },
+          { v: "Twin-first", l: "Every change rehearsed" },
+        ],
+        log: [
+          ["SCADA", "Pump P-2B vibration +18% over 9 days"],
+          ["LLM", "Bearing-wear signature · failure risk in ~3 weeks"],
+          ["LAM", "Service window booked · flow moved to well 2A"],
+        ],
+        callouts: [{ at: "well", text: "P-2B · bearing wear · ~3 weeks" }],
+      },
+    },
+    dtf: {
+      demand: {
+        headline: "Matches one well to the load.",
+        body: "On a single pad, the twin forecasts the load on Compute Modules A and B and moves the ORC set-point ahead of it, anywhere between 2 and 20 MWe.",
+        chart: "Pad compute load · MW-IT",
+        kpis: [
+          { v: "2–20", l: "MWe, dynamically scalable" },
+          { v: "2", l: "Compute modules forecast" },
+          { v: "0", l: "People on site, routine" },
+        ],
+        log: [
+          ["SCADA", "Modules A + B at 14.2 MW-IT"],
+          ["LLM", "Inference peak at 20:00 · +3 MW for 2 h"],
+          ["LAM", "Raise ORC-DC output · pre-charge the BESS"],
+        ],
+        callouts: [
+          { at: "modA", text: "Module A · peak at 20:00" },
+          { at: "modB", text: "Module B · steady" },
+        ],
+      },
+      storage: {
+        headline: "A DC buffer, charged on schedule.",
+        body: "The GEOFLEX BESS sits on the native DC bus. The twin charges it ahead of predicted peaks and discharges it through them, so the well runs steady while the compute does not.",
+        chart: "GEOFLEX BESS state of charge · %",
+        kpis: [
+          { v: "10 MW", l: "GEOFLEX BESS · 2 × 5 MW" },
+          { v: "20 MWh", l: "Closed-loop DC buffer" },
+          { v: "Native DC", l: "No transformer in the path" },
+        ],
+        log: [
+          ["SCADA", "BESS state of charge 48%"],
+          ["LLM", "Peak in 3 h · charge to 90% on surplus ORC output"],
+          ["LAM", "Charge at 2.5 MW · release through the peak"],
+        ],
+        callouts: [{ at: "bess", text: "GEOFLEX BESS · charging" }],
+      },
+      stability: {
+        headline: "Holds the DC bus steady.",
+        body: "There is no grid to lean on. When the compute load steps, the BESS answers first and the ORC follows, while the twin keeps the native DC bus inside its band.",
+        chart: "DC bus voltage deviation · %",
+        kpis: [
+          { v: "0", l: "Substation transformers" },
+          { v: "< 1 s", l: "Simulated BESS response" },
+          { v: "1", l: "Well · one closed loop" },
+        ],
+        log: [
+          ["SCADA", "Load step +4 MW · DC bus dip"],
+          ["LLM", "Transient, not a fault · bridge with the BESS"],
+          ["LAM", "BESS discharge 4 MW · ORC ramps over 90 s"],
+        ],
+        callouts: [{ at: "bus", text: "Native DC bus · held" }],
+      },
+      cooling: {
+        headline: "Chills with the tail brine.",
+        body: "Tail-brine absorption cooling chills the immersion tanks and the BESS. The twin times the chillers against the forecast load. Water stays out of the nano-CO₂ circuit, in the secondary loop only.",
+        chart: "Immersion tank inlet · °C",
+        kpis: [
+          { v: "20.57", l: "MWth absorption cooling" },
+          { v: "1.04", l: "PUE target" },
+          { v: "≈ 15%", l: "Water vs conventional · immersion" },
+        ],
+        log: [
+          ["SCADA", "Tank inlet 31 °C · tail brine steady"],
+          ["LLM", "Load rise at 20:00 · pre-chill the tanks"],
+          ["LAM", "Raise LiBr/NH₃ duty · BESS cooling held"],
+        ],
+        callouts: [{ at: "tanks", text: "Absorption cooling · pre-chill" }],
+      },
+      maintenance: {
+        headline: "Robots fix it before it breaks.",
+        body: "The twin watches the ORC, the pumps, the BESS and every server. When a part trends toward failure, a robot swaps it in the next quiet window, supervised remotely.",
+        chart: "ORC feed pump health index · days",
+        kpis: [
+          { v: "≤ 15 min", l: "Robot server swap · target" },
+          { v: "0", l: "Routine staff on site" },
+          { v: "Weeks", l: "Fault-warning horizon" },
+        ],
+        log: [
+          ["SCADA", "ORC feed pump vibration +14% over 6 days"],
+          ["LLM", "Seal-wear signature · act within 2 weeks"],
+          ["LAM", "Swap booked 03:00 · Module B load moved to A"],
+        ],
+        callouts: [{ at: "orc", text: "ORC feed pump · seal wear" }],
+      },
+    },
+  },
+  footnote:
+    "Illustrative simulation of AI GMS behaviour. Values are representative of Phase 0 simulated operation and design targets in White Paper V-1F, not measured performance.",
 };

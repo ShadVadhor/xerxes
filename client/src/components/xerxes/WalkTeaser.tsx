@@ -47,7 +47,7 @@ export default function WalkTeaser() {
             <span className="accent-serif text-magma-hi">Then go five kilometres down.</span>
           </h2>
           <p data-reveal className="mt-7 max-w-[46ch] text-[1.02rem] leading-relaxed text-ceramic/75">
-            A guided flight through one Xerxes production pod: the hub and its digital twin, the compute hall, the water-free cooling plant, the NanoVault, the wellheads, 120 branches in the rock and the roof that works. Or take the controls and explore it yourself.
+            A guided flight through one Xerxes production pod: the hub and its digital twin, the compute hall, the low-water CO₂ cooling plant, the NanoVault, the wellheads, 120 branches in the rock and the roof that works. Or take the controls and explore it yourself.
           </p>
           <dl data-reveal className="mt-9 grid max-w-md grid-cols-3 gap-px overflow-hidden rounded-sm border border-white/10 bg-white/10">
             {FACTS.map(f => (

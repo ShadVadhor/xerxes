@@ -5,6 +5,7 @@ import Company from "@/components/xerxes/Company";
 import Contact from "@/components/xerxes/Contact";
 import CursorGlow from "@/components/xerxes/CursorGlow";
 import DataHall from "@/components/xerxes/DataHall";
+import DigitalTwin from "@/components/xerxes/DigitalTwin";
 import Descent from "@/components/xerxes/Descent";
 import Footer from "@/components/xerxes/Footer";
 import Gms from "@/components/xerxes/Gms";
@@ -105,6 +106,7 @@ export default function Home() {
         <DataHall />
         <WalkTeaser />
         <Gms />
+        <DigitalTwin />
         <Impact />
         <Sovereignty />
         <Programme />

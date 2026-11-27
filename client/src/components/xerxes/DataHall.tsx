@@ -1,17 +1,11 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { A } from "@/lib/assets";
 import { HALL, SHELL } from "@/lib/content";
 import { gsap, prefersReducedMotion } from "@/lib/smooth";
+import RoomPopup, { ROOM_IMG } from "./RoomPopup";
 import { Eyebrow } from "./ui";
 
-const IMG: Record<string, string> = {
-  hub: A.hubRender,
-  hall: A.hall,
-  cooling: A.cooling,
-  rack: A.rack,
-  command: A.command,
-  wellpad: A.wellpad,
-};
+const IMG = ROOM_IMG;
 
 export default function DataHall() {
   const root = useRef<HTMLElement>(null);
@@ -19,6 +13,7 @@ export default function DataHall() {
   const video = useRef<HTMLVideoElement>(null);
   const galleryOuter = useRef<HTMLDivElement>(null);
   const track = useRef<HTMLDivElement>(null);
+  const [room, setRoom] = useState<string | null>(null);
 
   // play the fly-through only while visible
   useEffect(() => {
@@ -262,7 +257,7 @@ export default function DataHall() {
               Six rooms. <span className="accent-serif text-magma-grad">One machine.</span>
             </h3>
             <p className="mt-4 max-w-[36ch] text-white/60">
-              From the hub to the rack: a walk through the spaces that turn geothermal heat into AI compute.
+              From the hub to the rack: a walk through the spaces that turn geothermal heat into AI compute. Open any room to see how it works.
             </p>
             <span className="mono mt-8 hidden items-center gap-3 text-[0.6rem] uppercase tracking-[0.24em] text-white/40 lg:flex">
               Keep scrolling <span className="inline-block h-px w-10 bg-white/40" />
@@ -292,12 +287,26 @@ export default function DataHall() {
               <div className="brackets m-3" aria-hidden>
                 <i />
               </div>
+              <span className="mono pointer-events-none absolute right-5 top-5 z-[5] flex items-center gap-2 border border-white/25 bg-black/45 px-3 py-2 text-[0.58rem] uppercase tracking-[0.2em] text-white/85 backdrop-blur-sm transition-colors duration-300 group-hover:border-magma group-hover:bg-magma group-hover:text-white sm:right-7 sm:top-7">
+                Explore
+                <svg viewBox="0 0 10 10" className="h-2.5 w-2.5" aria-hidden>
+                  <path d="M5 0v10M0 5h10" stroke="currentColor" strokeWidth="1.4" />
+                </svg>
+              </span>
+              <button
+                type="button"
+                onClick={() => setRoom(g.key)}
+                aria-haspopup="dialog"
+                aria-label={`Explore ${g.title}`}
+                className="absolute inset-0 z-10 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-6px] focus-visible:outline-magma"
+              />
             </figure>
           ))}
           <div className="w-[8vw] shrink-0" aria-hidden />
         </div>
       </div>
       <p className="wrap mono pb-10 text-[0.6rem] tracking-[0.12em] text-white/35">{HALL.note}</p>
+      <RoomPopup room={room} onChange={setRoom} />
     </section>
   );
 }

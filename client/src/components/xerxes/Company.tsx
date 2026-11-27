@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { COMPANY } from "@/lib/content";
 import { gsap, prefersReducedMotion } from "@/lib/smooth";
+import CompanyPopup from "./CompanyPopup";
 import { Eyebrow } from "./ui";
 
 function Monogram({ name }: { name: string }) {
@@ -17,6 +18,7 @@ function Monogram({ name }: { name: string }) {
 
 export default function Company() {
   const dotRef = useRef<SVGCircleElement>(null);
+  const [open, setOpen] = useState<string | null>(null);
   useEffect(() => {
     const dot = dotRef.current;
     if (!dot || prefersReducedMotion()) return;
@@ -66,9 +68,21 @@ export default function Company() {
                 <article key={entity.name} className={`group relative self-start border border-border bg-basalt/75 p-7 transition-colors duration-500 hover:border-magma/65 sm:p-9 ${offsets[index]}`} data-reveal data-reveal-delay={String(index * 0.1)}>
                   <span className="absolute -left-px top-8 h-10 w-px bg-magma transition-all duration-500 group-hover:h-20" aria-hidden="true" />
                   <p className="font-display text-[clamp(4.7rem,7.7vw,8rem)] font-bold leading-none tracking-[-0.065em] text-transparent transition-all duration-500 group-hover:[-webkit-text-stroke-color:rgba(255,90,31,0.55)]" style={{ WebkitTextStroke: "1px rgba(236,232,224,0.24)" }}>{entity.year}</p>
-                  <h4 className="mt-8 max-w-[12ch] font-display text-[1.8rem] font-semibold leading-tight tracking-[-0.035em]">{entity.name}</h4>
+                  <p className="mono mt-3 text-[0.6rem] uppercase tracking-[0.16em] text-white/45">{entity.yearNote}</p>
+                  <h4 className="mt-7 max-w-[12ch] font-display text-[1.8rem] font-semibold leading-tight tracking-[-0.035em]">{entity.name}</h4>
                   <p className="mono mt-4 text-[0.65rem] uppercase tracking-[0.15em] text-magma-hi">{entity.place}</p>
                   <p className="mt-8 max-w-[32ch] border-t border-border pt-5 text-sm leading-relaxed text-muted-foreground">{entity.role}</p>
+                  <span className="mono mt-6 inline-flex items-center gap-2 text-[0.6rem] uppercase tracking-[0.2em] text-white/60 transition-colors duration-300 group-hover:text-magma-hi">
+                    Timeline and partnership
+                    <svg viewBox="0 0 10 10" className="h-2.5 w-2.5" aria-hidden="true"><path d="M5 0v10M0 5h10" stroke="currentColor" strokeWidth="1.4" /></svg>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setOpen(entity.id)}
+                    aria-haspopup="dialog"
+                    aria-label={`${entity.name}: timeline and partnership details`}
+                    className="absolute inset-0 z-10 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-magma"
+                  />
                 </article>
               ))}
             </div>
@@ -87,6 +101,7 @@ export default function Company() {
           ))}
         </div>
       </div>
+      <CompanyPopup id={open} onChange={setOpen} />
     </section>
   );
 }

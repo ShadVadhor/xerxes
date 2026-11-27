@@ -126,11 +126,11 @@ export const STOPS: Stop[] = [
     title: "Where the heat",
     accent: "is made.",
     body:
-      "Every rack is liquid cooled into a sealed, water-free loop. The compute layer is vendor-agnostic: NVIDIA, AMD, Intel, Cerebras, Tenstorrent and sovereign silicon share one fabric, built for next-generation high-density GPUs, TPUs and NPUs.",
+      "Every rack is liquid cooled into a sealed nano-CO₂ loop that water never enters. The compute layer is vendor-agnostic: NVIDIA, AMD, Intel, Cerebras, Tenstorrent and sovereign silicon share one fabric, built for next-generation high-density GPUs, TPUs and NPUs.",
     figures: [
       { v: "150 kW", l: "Per rack · design" },
       { v: "≥80 GB/s", l: "Per node fabric" },
-      { v: "0 L", l: "Water for cooling" },
+      { v: "0 L", l: "Water in the primary loop" },
     ],
     basis: "White Paper V-1F · compute layer",
     cam: [-7.2, 2.7, 63.5],
@@ -197,13 +197,13 @@ export const STOPS: Stop[] = [
     id: "cooling",
     zone: "Pod 1 · Cooling plant",
     kicker: "06 · Cooling",
-    title: "No water.",
-    accent: "Anywhere.",
+    title: "A quarter",
+    accent: "of the water.",
     body:
-      "Cooling runs on a sealed CO₂ loop. Waste heat drives a lithium-bromide absorption chiller, a closed cycle with no compressors, and the nano-shell hands cold air from the roof to the loop through intake ducts.",
+      "The primary loop is sealed nano-CO₂; water never enters it. Water is used only in the secondary loop: about 25% of a conventional data center, or 15% with liquid or immersion cooling. Waste heat drives a lithium-bromide absorption chiller with no compressors, and the nano-shell hands cold air from the roof to the loop.",
     figures: [
-      { v: "0 L", l: "Water for cooling" },
-      { v: "1.2 B L", l: "Cooling water avoided / yr · modelled" },
+      { v: "≈ 25%", l: "Water vs conventional DC · conventional cooling" },
+      { v: "≈ 15%", l: "With liquid or immersion cooling" },
       { v: "1.05", l: "Design PUE" },
     ],
     basis: "White Paper V-1F · cooling",
@@ -213,7 +213,7 @@ export const STOPS: Stop[] = [
     hotspots: [
       { at: [-9, 5.6, 175], label: "Absorption chiller", text: "Sealed lithium-bromide cycle powered by waste heat; no compressors." },
       { at: [-23, 9, 176], label: "Shell intake", text: "Wind and cold captured by the roof come down this duct into the loop." },
-      { at: [10, 1.6, 172], label: "CO₂ loop", text: "Closed CO₂ thermal exchange; no evaporative towers." },
+      { at: [10, 1.6, 172], label: "CO₂ loop", text: "Sealed nano-CO₂ primary loop: no water, no evaporative towers. Water stays in the secondary loop." },
     ],
   },
   {
@@ -329,7 +329,7 @@ export const STOPS: Stop[] = [
     figures: [
       { v: "72,000 t", l: "CO₂ avoided / yr vs conventional · modelled" },
       { v: "< 12%", l: "Land area vs solar for the same energy" },
-      { v: "0 L", l: "Water" },
+      { v: "≈ 25%", l: "Water vs conventional · secondary loop only" },
     ],
     basis: "White Paper V-1F · environment · shell performance not published",
     cam: [-150, 78, 52],

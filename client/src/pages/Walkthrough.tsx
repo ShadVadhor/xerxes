@@ -493,7 +493,7 @@ export default function Walkthrough() {
               Walk inside <span className="accent-serif text-magma-hi">Xerxes.</span>
             </h2>
             <p className="mt-6 max-w-[48ch] text-[0.98rem] leading-relaxed text-ceramic/75">
-              From the hub's digital twin to the rock five kilometres below: compute halls, a water-free cooling plant, the NanoVault, the wellheads, 120 branches and the biogas bus that replaces batteries.
+              From the hub's digital twin to the rock five kilometres below: compute halls, a low-water CO₂ cooling plant, the NanoVault, the wellheads, 120 branches and the biogas bus that replaces batteries.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <button type="button" disabled={!ready} onClick={start} className="btn-magma disabled:opacity-60">

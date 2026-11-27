@@ -548,3 +548,21 @@ html.lenis body {
 @media (max-width: 639px) {
   .wp-lbl { display: none; }
 }
+@keyframes twin-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes room-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}

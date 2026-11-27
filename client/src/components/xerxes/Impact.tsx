@@ -26,11 +26,13 @@ function ComparisonChart() {
   }, []);
 
   return (
-    <div ref={ref} role="img" aria-label={IMPACT.bars.map(row => `${row.label}: ${COMPARISON.industry} ${row.industry.text}; ${COMPARISON.xerxes} ${row.xerxes.text}`).join(". ")} className="min-w-0">
+    <div ref={ref} role="img" aria-label={IMPACT.bars.map(row => `${row.label}: ${COMPARISON.industry} ${row.industry.text}; ${COMPARISON.xerxes} ${row.xerxes.text}${"alt" in row && row.alt ? `; ${row.alt.label} ${row.alt.text}` : ""}`).join(". ")} className="min-w-0">
       <div className="space-y-9 sm:space-y-10">
         {IMPACT.bars.map(row => {
           const negative = "negative" in row.xerxes && row.xerxes.negative;
           const zero = row.xerxes.pct === 0;
+          const alt = "alt" in row ? row.alt : undefined;
+          const note = "note" in row ? row.note : undefined;
           return (
             <div key={row.label} className="grid gap-5 border-t border-border pt-6 md:grid-cols-[minmax(0,0.8fr)_minmax(0,2fr)] md:gap-8">
               <h3 className="mono max-w-[23ch] text-[0.68rem] uppercase leading-relaxed tracking-[0.16em] text-muted-foreground md:pt-0.5">{row.label}</h3>
@@ -46,7 +48,7 @@ function ComparisonChart() {
                 </div>
                 <div>
                   <div className="mb-2 flex items-baseline justify-between gap-2">
-                    <span className="text-[0.69rem] font-semibold text-ink sm:text-xs">{COMPARISON.xerxes}</span>
+                    <span className="text-[0.69rem] font-semibold text-ink sm:text-xs">{COMPARISON.xerxes}{alt ? " · conventional cooling" : ""}</span>
                     <span className="mono flex shrink-0 items-center gap-2 text-[0.72rem] font-medium text-ink sm:text-sm">
                       {negative && <svg width="13" height="16" viewBox="0 0 13 16" fill="none" className="text-magma-lo" aria-hidden><path d="M6.5 1v12M2 9l4.5 4.5L11 9" stroke="currentColor" strokeWidth="1.5" /></svg>}
                       {row.xerxes.text}
@@ -65,6 +67,23 @@ function ComparisonChart() {
                     )}
                   </div>
                 </div>
+                {alt && (
+                  <div>
+                    <div className="mb-2 flex items-baseline justify-between gap-2">
+                      <span className="text-[0.69rem] font-semibold text-ink sm:text-xs">{alt.label}</span>
+                      <span className="mono shrink-0 text-[0.72rem] font-medium text-ink sm:text-sm">{alt.text}</span>
+                    </div>
+                    <div className="relative h-6 bg-ink/[0.035] sm:h-7" aria-hidden>
+                      <div data-impact-bar className="relative h-full origin-left overflow-hidden bg-gradient-to-r from-[#1f5fd1] to-[#3d8bff]" style={{ width: `${alt.pct}%` }} />
+                    </div>
+                  </div>
+                )}
+                {note && (
+                  <p className="flex max-w-[70ch] items-start gap-3 text-[0.8rem] leading-relaxed text-muted-foreground">
+                    <span className="mt-[0.6em] h-px w-6 shrink-0 bg-magma" aria-hidden />
+                    {note}
+                  </p>
+                )}
               </div>
             </div>
           );
