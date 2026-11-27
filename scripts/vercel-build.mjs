@@ -33,7 +33,7 @@ await build({
 writeFileSync(`${fn}/package.json`, JSON.stringify({ type: "commonjs" }));
 writeFileSync(
   `${fn}/.vc-config.json`,
-  JSON.stringify({ runtime: "nodejs20.x", handler: "index.js", launcherType: "Nodejs", shouldAddHelpers: false }, null, 2)
+  JSON.stringify({ runtime: "nodejs22.x", handler: "index.js", launcherType: "Nodejs", shouldAddHelpers: false }, null, 2)
 );
 
 const immutable = { "cache-control": "public, max-age=31536000, immutable" };
