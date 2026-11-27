@@ -1,10 +1,26 @@
-import { LockKeyhole } from "lucide-react";
+import { LockKeyhole, Play } from "lucide-react";
+import { A } from "@/lib/assets";
 import { ACCESS } from "@/lib/content";
 import { requestContact } from "@/lib/interest";
-import { prefersReducedMotion } from "@/lib/smooth";
+import { prefersReducedMotion, scrollToId } from "@/lib/smooth";
 import { Arrow, Eyebrow } from "./ui";
 
 const waveform = [14, 23, 42, 28, 54, 72, 37, 60, 89, 53, 76, 99, 63, 86, 44, 67, 91, 52, 33, 73, 58, 35, 47, 24, 15];
+
+/** The campus film is public: its card shows the poster and sends the visitor to the film in 08. */
+function FilmPreview() {
+  return (
+    <div className="relative flex aspect-[16/10] items-center justify-center overflow-hidden border-b border-border bg-obsidian">
+      <img src={A.campusFilmPoster} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover opacity-80 transition-transform duration-[1400ms] ease-out group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(7,8,11,0.85),rgba(7,8,11,0.15)_60%,rgba(7,8,11,0.4))]" />
+      <span className="mono absolute left-5 top-5 border border-magma/35 bg-obsidian/50 px-2.5 py-1.5 text-[0.55rem] tracking-[0.2em] text-magma-hi">PUBLIC · 3:08</span>
+      <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-magma text-obsidian shadow-[0_0_35px_rgba(255,90,31,0.45)] transition-transform duration-500 group-hover:scale-110 motion-reduce:transition-none">
+        <Play size={20} className="ml-0.5 fill-current" strokeWidth={0} aria-hidden="true" />
+      </span>
+      <div className="brackets opacity-30"><i /></div>
+    </div>
+  );
+}
 
 function PrivatePreview({ kind }: { kind: string }) {
   return (
@@ -33,7 +49,7 @@ function PrivatePreview({ kind }: { kind: string }) {
         </div>
       )}
       <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(7,8,11,0.8),transparent_65%)]" />
-      <span className="mono absolute left-5 top-5 border border-magma/35 px-2.5 py-1.5 text-[0.55rem] tracking-[0.2em] text-magma-hi">{ACCESS.items[2].meta.split(" · ")[0].toUpperCase()}</span>
+      <span className="mono absolute left-5 top-5 border border-magma/35 px-2.5 py-1.5 text-[0.55rem] tracking-[0.2em] text-magma-hi">PRIVATE</span>
       <span className="access-lock relative flex h-14 w-14 items-center justify-center rounded-full border border-ceramic/25 bg-obsidian/85 text-ceramic shadow-[0_0_35px_rgba(0,0,0,0.6)] backdrop-blur-md transition-colors duration-500 group-hover:border-magma/70 group-hover:text-magma-hi">
         <LockKeyhole size={19} strokeWidth={1.25} aria-hidden="true" />
       </span>
@@ -57,13 +73,17 @@ export default function Access() {
           {ACCESS.items.map((item, index) => (
             <div key={item.id} data-reveal data-reveal-delay={String(index * 0.1)}>
               <article className={`group flex h-full flex-col border border-border bg-basalt-2/35 transition-[transform,border-color] duration-500 hover:border-magma/60 ${reduced ? "" : "hover:-translate-y-2"}`}>
-                <PrivatePreview kind={item.id} />
+                {item.id === "film" ? <FilmPreview /> : <PrivatePreview kind={item.id} />}
                 <div className="flex flex-1 flex-col p-6 sm:p-8 lg:p-7 xl:p-8">
                   <p className="mono text-[0.65rem] uppercase tracking-[0.2em] text-magma-hi">{item.kind}</p>
                   <h3 className="mt-5 font-display text-[clamp(1.45rem,2.2vw,2.1rem)] font-semibold leading-[1.1] tracking-[-0.035em]">{item.title}</h3>
                   <p className="mono mt-5 min-h-[3em] text-[0.62rem] leading-relaxed text-muted-foreground">{item.meta}</p>
                   <div className="mt-auto pt-8">
-                    <button type="button" className="btn-ghost w-full justify-between gap-3 !px-4 !text-[0.6rem] !tracking-[0.08em] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-magma-hi" onClick={() => requestContact(item.interest, item.id)}>
+                    <button
+                      type="button"
+                      className="btn-ghost w-full justify-between gap-3 !px-4 !text-[0.6rem] !tracking-[0.08em] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-magma-hi"
+                      onClick={() => (item.id === "film" ? scrollToId("ksa-film", -80) : requestContact(item.interest, item.id))}
+                    >
                       {item.cta}<Arrow className="shrink-0" />
                     </button>
                   </div>

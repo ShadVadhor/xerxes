@@ -16,6 +16,8 @@ export const A = {
   heroVideo: "/manus-storage/hero_loop_720_v4_c007a1c0.mp4",
   heroVideoMobile: "/manus-storage/hero_loop_mobile_v4_a079baba.mp4",
   heroPoster: "/manus-storage/hero_poster_v3_256b0ab2.jpg",
+  campusFilm: "/manus-storage/xerxes_campus_film_3ae5da5e.mp4",
+  campusFilmPoster: "/manus-storage/ksa_film_poster_d8470495.webp",
   hubRender: "/manus-storage/hub_render_082e1c16.webp",
   dtfPad: "/manus-storage/dtf_pad_v2_f367a96c.webp",
   dtfRoom: "/manus-storage/dtf_room_v2_f82744e2.webp",

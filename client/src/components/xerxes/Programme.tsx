@@ -3,6 +3,7 @@ import { A } from "@/lib/assets";
 import { PROGRAMME } from "@/lib/content";
 import { requestContact } from "@/lib/interest";
 import { gsap, prefersReducedMotion } from "@/lib/smooth";
+import CampusFilm from "./CampusFilm";
 import { Arrow, Eyebrow } from "./ui";
 
 function PhaseDot({ status }: { status: string }) {
@@ -147,7 +148,7 @@ export default function Programme() {
       </div>
 
       {/* resumption protocol */}
-      <div className="wrap relative mt-[clamp(4rem,8vw,7rem)] pb-[clamp(5rem,10vw,9rem)]">
+      <div className="wrap relative mt-[clamp(4rem,8vw,7rem)]">
         <div className="mono text-[0.66rem] uppercase tracking-[0.24em] text-magma-hi">How we resume</div>
         <ol className="mt-6 grid gap-px border border-white/12 bg-white/10 md:grid-cols-3">
           {PROGRAMME.resume.map(r => (
@@ -161,6 +162,9 @@ export default function Programme() {
           ))}
         </ol>
       </div>
+
+      {/* campus film */}
+      <CampusFilm />
     </section>
   );
 }

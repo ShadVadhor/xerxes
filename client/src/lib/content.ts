@@ -455,6 +455,22 @@ export const PROGRAMME = {
     { n: "03", t: "Mobilise & re-baseline", d: "Delivery restarts. We announce it here first." },
   ],
   cta: "Register interest — be told first",
+  film: {
+    label: "Campus film · 3:08",
+    title: "Waiting on the horizon:",
+    titleAccent: "the campus film.",
+    body:
+      "A 3D render of a Xerxes campus, from the arrival road and the security gate to the central hub, the power hall, the nano-shell roofs and the data halls, ending on an aerial of the hub and its six pods.",
+    note: "3D concept render · music, no narration · design intent, not a site photograph",
+    chapters: [
+      { t: 8, label: "Arrival" },
+      { t: 44, label: "The hub" },
+      { t: 63, label: "Power hall" },
+      { t: 73, label: "Nano-shell roofs" },
+      { t: 112, label: "Data hall" },
+      { t: 127, label: "The whole campus" },
+    ],
+  },
 };
 
 export const COMPANY = {
@@ -551,10 +567,10 @@ export const ACCESS = {
     {
       id: "film",
       kind: "Film",
-      title: "The full walkthrough film",
-      meta: "Private · shared on request",
+      title: "The Xerxes campus film",
+      meta: "Public · 3:08 · in 08 Programme status",
       interest: "Partnership",
-      cta: "Request private access",
+      cta: "Watch the film",
     },
   ],
 };
@@ -581,7 +597,7 @@ export const CONTACT = {
     },
     {
       name: "Aiden Digital Labs UK",
-      lines: ["71-75 Shelton Street", "Covent Garden, London WC2H 9JQ", "United Kingdom"],
+      lines: ["128 City Road", "London EC1V 2NX", "United Kingdom"],
       email: "contact@aiden.ventures",
     },
     {
